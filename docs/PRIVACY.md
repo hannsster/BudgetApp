@@ -30,13 +30,17 @@ symbols you hold, and the API key. There is no telemetry endpoint, crash reporte
 
 ## API keys
 
-- Keys are read from `local.properties` (git-ignored) or a CI environment variable at build time and injected
-  into `BuildConfig`. They are never committed, logged or displayed in the UI.
+- The market-data key is typed in **Settings → Market data** and stored in the app's private DataStore
+  (`/data/data/com.mipresupuestocr.app`), which other apps cannot read on a non-rooted device. It is masked while
+  typing, never shown again, never logged, and excluded from backup by the app's data-extraction rules.
+- A build-time key from `local.properties` (git-ignored) or a CI environment variable is only a fallback for
+  preconfigured builds. It is never committed and never displayed in the UI.
 - The HTTP logger redacts `apikey`, `api_key`, `key` and `token` query parameters and logs at most basic request
   lines in debug builds.
-- **Caveat:** a key compiled into a client app can be extracted from the APK. Treat it as a personal credential,
-  use a plan intended for personal use, and rotate it if it leaks. For a widely distributed app, proxy requests
-  through a backend you control.
+- **Caveat:** a key stored on a device can be read by anyone with full control of that device (root, ADB backup),
+  and a key compiled into the APK can be extracted from it. Treat it as a personal credential, use a plan
+  intended for personal use, and rotate it if it leaks. For a widely distributed app, proxy requests through a
+  backend you control.
 - Never paste a key into a chat, an issue, a commit or a screenshot.
 
 ## What the app deliberately does not do

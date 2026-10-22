@@ -3,6 +3,17 @@
 MiPresupuesto CR helps you plan a budget in colones and keep an eye on USD-listed ETFs, with a reference
 USD/CRC rate so both currencies make sense together.
 
+## Installing the app
+
+1. On the phone, open the [latest release](https://github.com/hannsster/BudgetApp/releases/latest) and download
+   `MiPresupuestoCR-<version>.apk`.
+2. Tap the finished download. Android asks permission to install from the browser or file manager; allow it and
+   confirm.
+3. Open **MiPresupuesto CR** from the app drawer.
+
+There is nothing to compile, no SDK to install and no key to paste before budgeting. Android 8.0 or newer is
+required. To update later, install a newer APK over the old one — your data is kept.
+
 ## First launch
 
 - The app seeds a set of starter categories (housing, groceries, transport, utilities, health, dining,
@@ -66,7 +77,7 @@ for the app to calculate every following window.
 Each position shows units × price, value in USD and CRC, allocation share, unrealized gain/loss (when a purchase
 price exists), the data source and the quote timestamp.
 
-To enable automatic prices you need a free Twelve Data key in `local.properties` — see
+To enable automatic prices, paste a free Twelve Data key in **Ajustes → Datos de mercado** — see
 [API_SETUP.md](API_SETUP.md). Without a key the positions remain editable and are listed as **No price**; totals
 only include priced positions.
 
@@ -93,8 +104,10 @@ Rates and prices refresh every six hours when a connection is available. You can
 
 | Symptom | What to do |
 | --- | --- |
-| "Market data key missing" | Add `TWELVE_DATA_API_KEY` to `local.properties` and rebuild |
-| "Key not configured" but you set it | Rebuild after editing `local.properties`; the value is compile-time |
+| "Market data key missing" | Open **Ajustes → Datos de mercado**, paste your free Twelve Data key and tap **Guardar clave** |
+| "Key not configured" but you pasted one | Tap **Guardar clave**; saving happens on that button, not while typing |
+| Key saved, prices still blank | Tap **Actualizar precios**; check the connection and that the ticker is a US-listed ETF |
+| Prices stopped updating after updating the app | The key lives in app storage and survives updates; if you cleared app data, paste it again |
 | A ticker stays "No price" | Check the symbol; the app only supports USD-listed instruments |
 | Rate shows "Stale data" | Refresh manually; if offline, the last saved rate stays |
 | Biweekly shows a payday error | Set your first payday in Settings |

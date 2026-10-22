@@ -1,0 +1,141 @@
+name: Release APK
+
+# The repository's deliverable is an installable APK: push a tag (for example v1.1.0) and the
+# workflow builds, signs and attaches the APK to a GitHub Release. Nobody has to build the app
+# themselves to use it.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+
+    env:
+      # Optional signing material. Without it the APK is signed with the debug key (installable,
+      # but not updatable across machines). Add these four secrets for stable updates:
+      # RELEASE_KEYSTORE_BASE64, RELEASE_KEYSTORE_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_KEY_PASSWORD.
+      KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+      RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
+      RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+      RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle with caching
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Work out the version
+        id: version
+        run: |
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            NAME="${GITHUB_REF_NAME#v}"
+          else
+            NAME="0.0.0-dev"
+          fi
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          echo "Building $NAME (versionCode $GITHUB_RUN_NUMBER)"
+
+      - name: Restore release keystore
+        if: env.KEYSTORE_BASE64 != ''
+        run: |
+          KEYSTORE_PATH="$RUNNER_TEMP/release.jks"
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+          echo "RELEASE_KEYSTORE_PATH=$KEYSTORE_PATH" >> "$GITHUB_ENV"
+          echo "Release keystore restored."
+
+      - name: Note signing mode
+        run: |
+          if [ -n "$RELEASE_KEYSTORE_PATH" ]; then
+            echo "Signing with the release keystore."
+          else
+            echo "::warning::No release keystore configured — the APK will be debug-signed and is not updatable across builds."
+          fi
+
+      - name: Unit tests
+        run: ./gradlew :domain:test :app:testDebugUnitTest --stacktrace
+
+      - name: Build release APK
+        run: >-
+          ./gradlew :app:assembleRelease --stacktrace
+          -PappVersionName=${{ steps.version.outputs.name }}
+          -PappVersionCode=${{ github.run_number }}
+
+      - name: Verify and stage the APK
+        run: |
+          APK=$(find app/build/outputs/apk/release -name '*.apk' | head -n 1)
+          if [ -z "$APK" ]; then
+            echo "No APK produced" >&2
+            exit 1
+          fi
+          BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n 1)
+          "$BUILD_TOOLS/apksigner" verify --print-certs "$APK"
+          "$BUILD_TOOLS/aapt2" dump badging "$APK" | grep -E "^(package|application-label:|sdkVersion|targetSdkVersion)"
+          STAGED="MiPresupuestoCR-${{ steps.version.outputs.name }}.apk"
+          cp "$APK" "$STAGED"
+          sha256sum "$STAGED" | tee "$STAGED.sha256"
+          echo "STAGED_APK=$STAGED" >> "$GITHUB_ENV"
+          echo "STAGED_SUM=$STAGED.sha256" >> "$GITHUB_ENV"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MiPresupuestoCR-${{ steps.version.outputs.name }}
+          path: |
+            MiPresupuestoCR-*.apk
+            MiPresupuestoCR-*.apk.sha256
+          if-no-files-found: error
+
+      - name: Publish GitHub Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            MiPresupuestoCR-*.apk
+            MiPresupuestoCR-*.apk.sha256
+          generate_release_notes: true
+          body: |
+            ## MiPresupuesto CR ${{ steps.version.outputs.name }}
+
+            Download the `.apk` below and install it on an Android 8.0+ device.
+            No build tools, Android Studio or API key are needed to install it.
+
+            1. Download `MiPresupuestoCR-${{ steps.version.outputs.name }}.apk`.
+            2. Open it on the phone and allow installs from this source when prompted.
+            3. Open **Ajustes → Datos de mercado** and paste a free Twelve Data key to enable
+               automatic ETF prices. Budgeting and the USD/CRC reference rate work without it.
+
+            Verify the download with the `.sha256` file if you want to. This app is a personal
+            budgeting tool, not financial advice.
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-reports
+          path: |
+            domain/build/reports/tests/
+            app/build/reports/tests/
+          if-no-files-found: ignore

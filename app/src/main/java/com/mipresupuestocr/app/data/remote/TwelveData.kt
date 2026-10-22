@@ -1,10 +1,13 @@
 package com.mipresupuestocr.app.data.remote
 
+import com.mipresupuestocr.app.data.settings.MarketDataKeySource
 import com.mipresupuestocr.domain.model.AppError
 import com.mipresupuestocr.domain.model.AppResult
 import com.mipresupuestocr.domain.model.Quote
 import com.mipresupuestocr.domain.provider.MarketQuoteProvider
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.serialization.Serializable
 import retrofit2.Response
 import retrofit2.http.GET
@@ -19,8 +22,8 @@ import javax.inject.Singleton
  * Twelve Data quote endpoint.
  * Docs: https://twelvedata.com/docs
  *
- * The free plan is intended for development and small personal use. The key is supplied at build
- * time from local.properties, never committed, and never logged.
+ * The free plan is intended for development and small personal use. The key is entered by the user
+ * in Settings and stored on the device, never committed, and never logged.
  */
 @Serializable
 data class TwelveDataQuoteDto(
@@ -44,16 +47,37 @@ interface TwelveDataService {
     ): Response<TwelveDataQuoteDto>
 }
 
-/** Read-only access to the market-data key so the settings screen can show whether it is set. */
+/**
+ * Resolves the market-data key at runtime.
+ *
+ * The key normally comes from Settings and is stored on the device, so a person who installs the
+ * APK never builds anything. [buildTimeKey] is only a fallback for maintainer-built APKs that ship
+ * preconfigured from CI; it is empty in normal builds.
+ */
 class MarketDataConfig(
-    val apiKey: String,
+    private val keySource: MarketDataKeySource,
+    private val buildTimeKey: String = "",
 ) {
-    val isConfigured: Boolean get() = apiKey.isNotBlank()
-
     val providerName: String get() = PROVIDER_NAME
+
+    val hasBuildTimeKey: Boolean get() = buildTimeKey.isNotBlank()
+
+    fun observeConfigured(): Flow<Boolean> =
+        keySource.observe().map { stored -> stored.isNotBlank() || hasBuildTimeKey }
+
+    /** The effective key, or null when the app has no key at all. */
+    suspend fun apiKey(): String? =
+        keySource.read().ifBlank { buildTimeKey }.takeIf { it.isNotBlank() }
+
+    suspend fun saveApiKey(value: String) = keySource.write(value)
+
+    suspend fun clearApiKey() = keySource.clear()
 
     companion object {
         const val PROVIDER_NAME = "Twelve Data"
+
+        /** Where a user gets a free key. Shown in Settings; never fetched automatically. */
+        const val SIGNUP_URL = "https://twelvedata.com/pricing"
     }
 }
 
@@ -70,10 +94,10 @@ class TwelveDataMarketQuoteProvider @Inject constructor(
     override suspend fun getQuote(ticker: String): AppResult<Quote> {
         val symbol = ticker.trim().uppercase(Locale.ROOT)
         if (symbol.isEmpty()) return AppResult.failure(AppError.InvalidTicker(ticker))
-        if (!config.isConfigured) return AppResult.failure(AppError.MissingApiKey)
+        val apiKey = config.apiKey() ?: return AppResult.failure(AppError.MissingApiKey)
 
         val response = try {
-            service.quote(symbol, config.apiKey)
+            service.quote(symbol, apiKey)
         } catch (cancellation: CancellationException) {
             throw cancellation
         } catch (error: Exception) {

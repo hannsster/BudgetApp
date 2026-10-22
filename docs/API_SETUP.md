@@ -22,7 +22,8 @@ If a different rate source is required:
 1. Create a class implementing `com.mipresupuestocr.domain.provider.ExchangeRateProvider`.
 2. Map failures to `AppError` values (`RateLimited`, `InvalidApiKey`, `Timeout`, `MalformedResponse`, …).
 3. Bind it in `app/src/main/java/com/mipresupuestocr/app/di/BindingsModule.kt`.
-4. If it needs a key, add a `buildConfigField` in `app/build.gradle.kts` and read it from `local.properties`.
+4. If it needs a key, reuse `MarketDataConfig`/`MarketDataKeySource` so the user can paste it in Settings, or add
+   a `buildConfigField` in `app/build.gradle.kts` read from `local.properties`.
 
 The repository, cache, dashboard and tests do not change.
 
@@ -32,26 +33,36 @@ The repository, cache, dashboard and tests do not change.
 | --- | --- |
 | Provider | Twelve Data |
 | Endpoint used | `GET https://api.twelvedata.com/quote?symbol=VTI&apikey=…` |
-| API key | Required (`TWELVE_DATA_API_KEY`) |
+| API key | Required, entered by the user in Settings (no rebuild needed) |
 | Free plan | 8 API credits/minute, 800/day; ETF coverage for US-listed instruments is explicitly included |
 | Data | `symbol`, `currency`, `close`, `timestamp`, `status` |
 | Terms | Free plan is for development/evaluation. Review display, redistribution and commercial-use terms before publishing an app that shows the data to end users |
 
-### Getting a key
+### Getting a key (the normal path — no build required)
 
 1. Create an account at <https://twelvedata.com/> and copy the API key from the dashboard.
-2. Add it to `local.properties` (git-ignored):
+2. Install the app from the latest GitHub Release.
+3. Open **Ajustes → Datos de mercado** (Settings → Market data), paste the key and tap **Guardar clave**.
+4. Tap **Actualizar precios** to fetch quotes immediately.
 
-   ```properties
-   TWELVE_DATA_API_KEY=your_key_here
-   ```
+The key is stored in the app's private DataStore on that device. It is masked while typing, never echoed back,
+never logged, and never compiled into the APK. This is why a person who installs the released APK does not need
+to build the app or touch `local.properties`.
 
-3. Rebuild. The value is read at build time into `BuildConfig.TWELVE_DATA_API_KEY`.
-4. In CI, add a repository secret named `TWELVE_DATA_API_KEY`; the workflow forwards it as an environment
-   variable to the Gradle build. Without the secret, CI still builds and tests — the app just ships without a key.
+### Key resolution order
 
-**Never** commit the key, paste it into an issue, or print `BuildConfig` values. The key is compiled into the
-APK, so anyone with the APK can extract it; treat it as a personal-use credential.
+`MarketDataConfig.apiKey()` returns the first non-blank value of:
+
+1. the key saved in Settings (device storage), then
+2. `BuildConfig.TWELVE_DATA_API_KEY`, a build-time value for maintainer-built, preconfigured APKs.
+
+To preconfigure a build of your own, put `TWELVE_DATA_API_KEY=…` in `local.properties` (git-ignored) or export
+it as an environment variable before running Gradle; the CI workflow forwards a repository secret of the same
+name, and works fine when the secret is absent. A key entered in Settings always overrides the built-in one.
+
+**Never** commit the key, paste it into an issue, or print `BuildConfig` values. A compiled-in key is extractable
+from the APK, and a key on the device is extractable by anyone with full control of that device; treat it as a
+personal-use credential.
 
 ### Request behaviour
 
@@ -70,7 +81,7 @@ APK, so anyone with the APK can extract it; treat it as a personal-use credentia
 | HTTP 429 | status code | `RateLimited` | Banner asks to retry later; backoff on background work |
 | Quota / plan exhausted | provider payload or HTTP 403 | `QuotaExceeded` / `InvalidApiKey` | Banner, no retry loop |
 | Invalid key | HTTP 401/403, provider error payload | `InvalidApiKey` | Banner; settings still show key as configured |
-| Missing key | blank `BuildConfig` value | `MissingApiKey` | Portfolio setup card; settings shows "Key not configured" |
+| Missing key | no key in Settings and no `BuildConfig` value | `MissingApiKey` | Portfolio setup card points to Settings → Market data |
 | Unknown ticker | provider error payload / 404 | `UnknownSymbol` | Ticker listed as failed, other quotes unaffected |
 | Non-USD instrument | `currency` field | `UnsupportedAsset` | Ticker listed as failed |
 | Empty body | null body | `EmptyResponse` | Banner |

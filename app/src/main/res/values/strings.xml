@@ -113,7 +113,7 @@
     <string name="portfolio_empty_body">Agrega tus ETF manualmente con el ticker, las unidades y, si quieres, el precio promedio de compra.</string>
     <string name="portfolio_add_holding">Agregar ETF</string>
     <string name="portfolio_missing_key_title">Falta la clave de datos de mercado</string>
-    <string name="portfolio_missing_key_body">Agrega TWELVE_DATA_API_KEY en local.properties y vuelve a compilar para actualizar precios automáticamente. Mientras tanto puedes registrar posiciones sin precio.</string>
+    <string name="portfolio_missing_key_body">Abre Ajustes → Datos de mercado y pega tu clave gratuita. Mientras tanto puedes registrar posiciones sin precio.</string>
     <string name="portfolio_value_usd">Valor USD</string>
     <string name="portfolio_value_crc">Valor CRC</string>
     <string name="portfolio_allocation">Asignación</string>
@@ -152,6 +152,13 @@
     <string name="settings_market_title">Datos de mercado</string>
     <string name="settings_market_key_ok">Clave configurada</string>
     <string name="settings_market_key_missing">Clave no configurada</string>
+    <string name="settings_market_key_help">Pega tu clave de %1$s para actualizar precios. Puedes obtener una gratis en %2$s.</string>
+    <string name="settings_market_key_label">Clave de API</string>
+    <string name="settings_market_key_privacy">La clave queda guardada solo en este dispositivo y no se vuelve a mostrar.</string>
+    <string name="settings_market_key_save">Guardar clave</string>
+    <string name="settings_market_key_remove">Eliminar clave</string>
+    <string name="settings_market_key_saved">Clave guardada</string>
+    <string name="settings_market_key_cleared">Clave eliminada</string>
     <string name="settings_data_title">Datos y privacidad</string>
     <string name="settings_data_note">Tus datos se guardan solo en este dispositivo. No hay servidor, cuenta ni respaldo en la nube.</string>
     <string name="settings_about_title">Acerca de</string>

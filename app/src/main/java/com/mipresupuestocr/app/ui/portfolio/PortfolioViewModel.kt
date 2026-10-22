@@ -62,7 +62,13 @@ class PortfolioViewModel @Inject constructor(
         Triple(holdings, quotes, rate)
     }
 
-    val uiState: StateFlow<PortfolioUiState> = combine(data, refreshing, error, message) { (holdings, quotes, rate), isRefreshing, currentError, currentMessage ->
+    val uiState: StateFlow<PortfolioUiState> = combine(
+        data,
+        refreshing,
+        error,
+        message,
+        marketDataConfig.observeConfigured(),
+    ) { (holdings, quotes, rate), isRefreshing, currentError, currentMessage, keyConfigured ->
         PortfolioUiState(
             isLoading = false,
             valuation = valuator.valuate(holdings, quotes, rate),
@@ -70,16 +76,13 @@ class PortfolioViewModel @Inject constructor(
             isRefreshing = isRefreshing,
             error = currentError,
             message = currentMessage,
-            marketKeyConfigured = marketDataConfig.isConfigured,
+            marketKeyConfigured = keyConfigured,
             providerName = marketDataConfig.providerName,
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = PortfolioUiState(
-            marketKeyConfigured = marketDataConfig.isConfigured,
-            providerName = marketDataConfig.providerName,
-        ),
+        initialValue = PortfolioUiState(providerName = marketDataConfig.providerName),
     )
 
     fun refresh() {

@@ -35,6 +35,7 @@ data class SettingsUiState(
     val referenceRate: ExchangeRate? = null,
     val marketKeyConfigured: Boolean = false,
     val marketProvider: String = "",
+    val marketProviderUrl: String = "",
     val isBusy: Boolean = false,
     val error: AppError? = null,
     val message: SettingsMessage? = null,
@@ -47,7 +48,16 @@ sealed interface SettingsMessage {
     data object ManualRateSaved : SettingsMessage
     data object ManualRateCleared : SettingsMessage
     data object QuotesRefreshed : SettingsMessage
+    data object MarketKeySaved : SettingsMessage
+    data object MarketKeyCleared : SettingsMessage
 }
+
+private data class SettingsData(
+    val settings: UserSettings,
+    val rate: ExchangeRate?,
+    val reference: ExchangeRate?,
+    val keyConfigured: Boolean,
+)
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -57,7 +67,7 @@ class SettingsViewModel @Inject constructor(
     private val refreshQuotesUseCase: RefreshQuotesUseCase,
     private val setManualRate: SetManualRateUseCase,
     private val clearManualRate: ClearManualRateUseCase,
-    marketDataConfig: MarketDataConfig,
+    private val marketDataConfig: MarketDataConfig,
     private val clock: Clock,
 ) : ViewModel() {
 
@@ -65,19 +75,23 @@ class SettingsViewModel @Inject constructor(
     private val error = MutableStateFlow<AppError?>(null)
     private val message = MutableStateFlow<SettingsMessage?>(null)
 
-    private val flows = combine(
+    private val data = combine(
         settingsRepository.observeSettings(),
         rateRepository.observeActiveRate(),
         rateRepository.observeReferenceRate(),
-    ) { settings, rate, reference -> Triple(settings, rate, reference) }
+        marketDataConfig.observeConfigured(),
+    ) { settings, rate, reference, keyConfigured ->
+        SettingsData(settings, rate, reference, keyConfigured)
+    }
 
-    val uiState: StateFlow<SettingsUiState> = combine(flows, busy, error, message) { (settings, rate, reference), isBusy, currentError, currentMessage ->
+    val uiState: StateFlow<SettingsUiState> = combine(data, busy, error, message) { current, isBusy, currentError, currentMessage ->
         SettingsUiState(
-            settings = settings,
-            rate = rate,
-            referenceRate = reference,
-            marketKeyConfigured = marketDataConfig.isConfigured,
+            settings = current.settings,
+            rate = current.rate,
+            referenceRate = current.reference,
+            marketKeyConfigured = current.keyConfigured,
             marketProvider = marketDataConfig.providerName,
+            marketProviderUrl = MarketDataConfig.SIGNUP_URL,
             isBusy = isBusy,
             error = currentError,
             message = currentMessage,
@@ -86,8 +100,9 @@ class SettingsViewModel @Inject constructor(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
         initialValue = SettingsUiState(
-            marketKeyConfigured = marketDataConfig.isConfigured,
+            marketKeyConfigured = marketDataConfig.hasBuildTimeKey,
             marketProvider = marketDataConfig.providerName,
+            marketProviderUrl = MarketDataConfig.SIGNUP_URL,
         ),
     )
 
@@ -149,6 +164,32 @@ class SettingsViewModel @Inject constructor(
                 is AppResult.Failure -> error.value = result.error
             }
             busy.value = false
+        }
+    }
+
+    /** Saving a blank value is treated as clearing the key. */
+    fun saveMarketDataKey(text: String) {
+        val key = text.trim()
+        if (key.isEmpty()) {
+            clearMarketDataKey()
+            return
+        }
+        viewModelScope.launch {
+            busy.value = true
+            error.value = null
+            runCatching { marketDataConfig.saveApiKey(key) }
+                .onSuccess { message.value = SettingsMessage.MarketKeySaved }
+                .onFailure { error.value = AppError.Unknown }
+            busy.value = false
+        }
+    }
+
+    fun clearMarketDataKey() {
+        viewModelScope.launch {
+            error.value = null
+            runCatching { marketDataConfig.clearApiKey() }
+                .onSuccess { message.value = SettingsMessage.MarketKeyCleared }
+                .onFailure { error.value = AppError.Unknown }
         }
     }
 

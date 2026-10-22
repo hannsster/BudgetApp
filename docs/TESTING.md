@@ -16,7 +16,23 @@
 ./gradlew :app:connectedDebugAndroidTest   # Compose UI tests (device/emulator required)
 ./gradlew lintDebug                        # Android lint
 ./gradlew assembleDebug                    # compiles everything, produces app/build/outputs/apk/debug
+./gradlew assembleRelease -PappVersionName=1.1.0 -PappVersionCode=2   # the shipped APK
 ```
+
+### Checking a release APK
+
+The release workflow does this automatically; run it locally after touching signing or packaging:
+
+```bash
+BT="$ANDROID_HOME/build-tools/35.0.0"
+APK=app/build/outputs/apk/release/app-release.apk
+"$BT/apksigner" verify --print-certs "$APK"       # must report a signer
+"$BT/aapt2" dump badging "$APK" | head -3         # package, versionCode, versionName
+```
+
+With no `RELEASE_*` properties the APK is debug-signed: it installs, but it cannot update a build signed with a
+different key. Set `RELEASE_KEYSTORE_PATH`, `RELEASE_KEYSTORE_PASSWORD`, `RELEASE_KEY_ALIAS` and
+`RELEASE_KEY_PASSWORD` to exercise the real release-signing path.
 
 Run everything CI runs locally with:
 

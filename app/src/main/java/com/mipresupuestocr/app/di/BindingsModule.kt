@@ -9,7 +9,9 @@ import com.mipresupuestocr.app.data.repository.DefaultHoldingRepository
 import com.mipresupuestocr.app.data.repository.DefaultQuoteRepository
 import com.mipresupuestocr.app.data.repository.DefaultRateRepository
 import com.mipresupuestocr.app.data.repository.DefaultTransactionRepository
+import com.mipresupuestocr.app.data.settings.DataStoreMarketDataKeySource
 import com.mipresupuestocr.app.data.settings.DefaultSettingsRepository
+import com.mipresupuestocr.app.data.settings.MarketDataKeySource
 import com.mipresupuestocr.domain.provider.ExchangeRateProvider
 import com.mipresupuestocr.domain.provider.MarketQuoteProvider
 import com.mipresupuestocr.domain.repository.CategoryRepository
@@ -53,6 +55,10 @@ abstract class BindingsModule {
     @Binds
     @Singleton
     abstract fun bindSettingsRepository(impl: DefaultSettingsRepository): SettingsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindMarketDataKeySource(impl: DataStoreMarketDataKeySource): MarketDataKeySource
 
     @Binds
     @Singleton

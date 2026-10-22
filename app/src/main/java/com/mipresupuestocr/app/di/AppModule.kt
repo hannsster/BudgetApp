@@ -8,6 +8,7 @@ import com.mipresupuestocr.app.data.remote.OpenErApiExchangeRateProvider
 import com.mipresupuestocr.app.data.remote.OpenErApiService
 import com.mipresupuestocr.app.data.remote.TwelveDataMarketQuoteProvider
 import com.mipresupuestocr.app.data.remote.TwelveDataService
+import com.mipresupuestocr.app.data.settings.MarketDataKeySource
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -85,13 +86,14 @@ object AppModule {
         retrofit.create(TwelveDataService::class.java)
 
     /**
-     * The key comes from local.properties at build time. A blank value is a supported state: the
-     * app then shows a setup card instead of failing.
+     * The key the user types in Settings wins; a build-time key only preconfigures the app for
+     * maintainer-built APKs. A blank result is a supported state: the app shows a setup card that
+     * sends the user to Settings instead of failing.
      */
     @Provides
     @Singleton
-    fun provideMarketDataConfig(): MarketDataConfig =
-        MarketDataConfig(BuildConfig.TWELVE_DATA_API_KEY)
+    fun provideMarketDataConfig(keySource: MarketDataKeySource): MarketDataConfig =
+        MarketDataConfig(keySource, BuildConfig.TWELVE_DATA_API_KEY)
 
     private fun retrofit(baseUrl: String, json: Json, client: OkHttpClient): Retrofit =
         Retrofit.Builder()

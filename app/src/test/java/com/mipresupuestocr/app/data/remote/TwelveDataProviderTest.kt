@@ -1,6 +1,7 @@
 package com.mipresupuestocr.app.data.remote
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.mipresupuestocr.app.data.settings.FakeMarketDataKeySource
 import com.mipresupuestocr.domain.model.AppError
 import com.mipresupuestocr.domain.model.AppResult
 import kotlinx.coroutines.test.runTest
@@ -24,8 +25,10 @@ class TwelveDataProviderTest {
     private val server = MockWebServer()
     private lateinit var service: TwelveDataService
 
-    private fun provider(apiKey: String = "test-key") =
-        TwelveDataMarketQuoteProvider(service, MarketDataConfig(apiKey))
+    private fun provider(apiKey: String = "test-key") = TwelveDataMarketQuoteProvider(
+        service,
+        MarketDataConfig(FakeMarketDataKeySource(apiKey)),
+    )
 
     @Before
     fun setUp() {

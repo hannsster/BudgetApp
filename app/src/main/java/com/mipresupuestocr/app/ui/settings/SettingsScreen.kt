@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -63,6 +64,7 @@ fun SettingsScreen(
     val context = LocalContext.current
     var showDatePicker by remember { mutableStateOf(false) }
     var manualRateText by remember { mutableStateOf("") }
+    var marketKeyText by remember { mutableStateOf("") }
 
     LaunchedEffect(state.message) {
         val pending = state.message ?: return@LaunchedEffect
@@ -72,6 +74,8 @@ fun SettingsScreen(
             SettingsMessage.ManualRateSaved -> context.getString(R.string.settings_manual_saved)
             SettingsMessage.ManualRateCleared -> context.getString(R.string.settings_manual_cleared)
             SettingsMessage.QuotesRefreshed -> context.getString(R.string.settings_quotes_refresh_done)
+            SettingsMessage.MarketKeySaved -> context.getString(R.string.settings_market_key_saved)
+            SettingsMessage.MarketKeyCleared -> context.getString(R.string.settings_market_key_cleared)
         }
         snackbarHostState.showSnackbar(text)
         viewModel.consumeMessage()
@@ -128,33 +132,23 @@ fun SettingsScreen(
             }
 
             item {
-                SectionCard {
-                    CardTitle(stringResource(R.string.settings_market_title))
-                    KeyValueRow(
-                        label = stringResource(R.string.dashboard_source, state.marketProvider),
-                        value = if (state.marketKeyConfigured) {
-                            stringResource(R.string.settings_market_key_ok)
-                        } else {
-                            stringResource(R.string.settings_market_key_missing)
-                        },
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(
-                            onClick = viewModel::refreshQuotes,
-                            enabled = !state.isBusy && state.marketKeyConfigured,
-                        ) {
-                            Text(stringResource(R.string.settings_prepare_quotes))
-                        }
-                        TextButton(onClick = viewModel::refreshRates, enabled = !state.isBusy) {
-                            Text(stringResource(R.string.settings_prepare_rate))
-                        }
-                    }
-                    Text(
-                        text = stringResource(R.string.settings_background_refresh),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+                MarketDataSection(
+                    provider = state.marketProvider,
+                    providerUrl = state.marketProviderUrl,
+                    isConfigured = state.marketKeyConfigured,
+                    isBusy = state.isBusy,
+                    keyText = marketKeyText,
+                    onKeyChange = { marketKeyText = it },
+                    onSaveKey = {
+                        viewModel.saveMarketDataKey(marketKeyText)
+                        marketKeyText = ""
+                    },
+                    onClearKey = {
+                        marketKeyText = ""
+                        viewModel.clearMarketDataKey()
+                    },
+                    onRefreshQuotes = viewModel::refreshQuotes,
+                )
             }
 
             item {
@@ -247,6 +241,68 @@ fun SettingsScreen(
         ) {
             DatePicker(state = pickerState)
         }
+    }
+}
+
+@Composable
+private fun MarketDataSection(
+    provider: String,
+    providerUrl: String,
+    isConfigured: Boolean,
+    isBusy: Boolean,
+    keyText: String,
+    onKeyChange: (String) -> Unit,
+    onSaveKey: () -> Unit,
+    onClearKey: () -> Unit,
+    onRefreshQuotes: () -> Unit,
+) {
+    SectionCard {
+        CardTitle(stringResource(R.string.settings_market_title))
+        KeyValueRow(
+            label = stringResource(R.string.dashboard_source, provider),
+            value = if (isConfigured) {
+                stringResource(R.string.settings_market_key_ok)
+            } else {
+                stringResource(R.string.settings_market_key_missing)
+            },
+        )
+        Text(
+            text = stringResource(R.string.settings_market_key_help, provider, providerUrl),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        OutlinedTextField(
+            value = keyText,
+            onValueChange = onKeyChange,
+            label = { Text(stringResource(R.string.settings_market_key_label)) },
+            singleLine = true,
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Text(
+            text = stringResource(R.string.settings_market_key_privacy),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = onSaveKey, enabled = !isBusy && keyText.isNotBlank()) {
+                Text(stringResource(R.string.settings_market_key_save))
+            }
+            if (isConfigured) {
+                TextButton(onClick = onClearKey, enabled = !isBusy) {
+                    Text(stringResource(R.string.settings_market_key_remove))
+                }
+            }
+        }
+        TextButton(onClick = onRefreshQuotes, enabled = !isBusy && isConfigured) {
+            Text(stringResource(R.string.settings_prepare_quotes))
+        }
+        Text(
+            text = stringResource(R.string.settings_background_refresh),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

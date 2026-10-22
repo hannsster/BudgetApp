@@ -12,7 +12,8 @@ Thanks for helping. This project favours small, reviewable changes and honest da
 
 1. JDK 17 and Android SDK 35.
 2. `local.properties` with `sdk.dir=…` (never committed).
-3. Optional: `TWELVE_DATA_API_KEY=…` in `local.properties` for live quotes. Tests do not need it.
+3. Optional: `TWELVE_DATA_API_KEY=…` in `local.properties` to preconfigure live quotes on your own device.
+   Tests never need it, and normal users paste their key in Settings → Market data instead of building.
 4. Run the checks before pushing:
 
    ```bash

@@ -6,6 +6,27 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-22
+
+### Added
+
+- Installable APK distribution: pushing a `v*` tag runs `.github/workflows/release.yml`, which tests,
+  builds, verifies and publishes the APK to GitHub Releases with a SHA-256 checksum. Nobody needs a build
+  toolchain to use the app.
+- Market-data key entry in **Settings → Market data**, stored on the device, masked while typing and never
+  displayed again. ETF prices no longer require editing `local.properties` and rebuilding.
+- Optional `RELEASE_*` signing properties, with a debug-signing fallback so a release build is always
+  installable, and `appVersionName`/`appVersionCode` Gradle overrides for tagged builds.
+- `MarketDataConfigTest` and a fake key source covering runtime key resolution and fallback order.
+
+### Changed
+
+- The market-data key is resolved at runtime; a build-time `TWELVE_DATA_API_KEY` is now only a fallback for
+  maintainer-built, preconfigured APKs.
+- Missing-key messaging points to Settings instead of telling the user to rebuild.
+- README and user guide lead with installing the APK; building from source is documented as a contributor path.
+- Version bumped to 1.1.0 (versionCode 2).
+
 ## [1.0.0] - 2026-10-22
 
 ### Added

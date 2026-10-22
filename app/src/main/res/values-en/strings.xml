@@ -113,7 +113,7 @@
     <string name="portfolio_empty_body">Add your ETFs manually with the ticker, the number of units and, optionally, the average purchase price.</string>
     <string name="portfolio_add_holding">Add ETF</string>
     <string name="portfolio_missing_key_title">Market data key missing</string>
-    <string name="portfolio_missing_key_body">Add TWELVE_DATA_API_KEY to local.properties and rebuild to refresh prices automatically. Until then you can still record positions without a price.</string>
+    <string name="portfolio_missing_key_body">Open Settings → Market data and paste your free key. Until then you can still record positions without a price.</string>
     <string name="portfolio_value_usd">Value USD</string>
     <string name="portfolio_value_crc">Value CRC</string>
     <string name="portfolio_allocation">Allocation</string>
@@ -152,6 +152,13 @@
     <string name="settings_market_title">Market data</string>
     <string name="settings_market_key_ok">Key configured</string>
     <string name="settings_market_key_missing">Key not configured</string>
+    <string name="settings_market_key_help">Paste your %1$s key to refresh prices. You can get a free one at %2$s.</string>
+    <string name="settings_market_key_label">API key</string>
+    <string name="settings_market_key_privacy">The key stays on this device and is never shown again.</string>
+    <string name="settings_market_key_save">Save key</string>
+    <string name="settings_market_key_remove">Remove key</string>
+    <string name="settings_market_key_saved">Key saved</string>
+    <string name="settings_market_key_cleared">Key removed</string>
     <string name="settings_data_title">Data and privacy</string>
     <string name="settings_data_note">Your data stays on this device. There is no server, account or cloud backup.</string>
     <string name="settings_about_title">About</string>

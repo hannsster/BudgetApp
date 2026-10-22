@@ -24,6 +24,21 @@ val localProperties = Properties().apply {
 fun buildSecret(name: String): String =
     localProperties.getProperty(name) ?: System.getenv(name) ?: ""
 
+/**
+ * Release signing is optional so a plain checkout still produces an installable APK.
+ * Set these four (local.properties or environment) to ship updates with a stable signature:
+ * RELEASE_KEYSTORE_PATH, RELEASE_KEYSTORE_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_KEY_PASSWORD.
+ */
+val releaseKeyStorePath = buildSecret("RELEASE_KEYSTORE_PATH")
+val releaseKeyStorePassword = buildSecret("RELEASE_KEYSTORE_PASSWORD")
+val releaseKeyAlias = buildSecret("RELEASE_KEY_ALIAS")
+val releaseKeyPassword = buildSecret("RELEASE_KEY_PASSWORD")
+val hasReleaseKeystore = releaseKeyStorePath.isNotBlank() &&
+    releaseKeyStorePassword.isNotBlank() &&
+    releaseKeyAlias.isNotBlank() &&
+    releaseKeyPassword.isNotBlank() &&
+    file(releaseKeyStorePath).exists()
+
 android {
     namespace = "com.mipresupuestocr.app"
     compileSdk = 35
@@ -32,8 +47,9 @@ android {
         applicationId = "com.mipresupuestocr.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        // Overridable from the release workflow: -PappVersionName=1.2.0 -PappVersionCode=42
+        versionCode = (project.findProperty("appVersionCode") as String?)?.toIntOrNull() ?: 2
+        versionName = (project.findProperty("appVersionName") as String?) ?: "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -50,6 +66,17 @@ android {
         buildConfig = true
     }
 
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            create("release") {
+                storeFile = file(releaseKeyStorePath)
+                storePassword = releaseKeyStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
@@ -62,6 +89,14 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            // The deliverable is an installable APK. Without a release keystore the build falls
+            // back to the debug key so the artifact still installs; add the four RELEASE_*
+            // properties for updates that keep the same signature.
+            signingConfig = if (hasReleaseKeystore) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 
