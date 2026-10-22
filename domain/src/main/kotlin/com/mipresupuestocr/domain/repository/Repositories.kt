@@ -1,7 +1,10 @@
 package com.mipresupuestocr.domain.repository
 
 import com.mipresupuestocr.domain.model.AppResult
+import com.mipresupuestocr.domain.model.BalanceCorrection
 import com.mipresupuestocr.domain.model.Category
+import com.mipresupuestocr.domain.model.CorrectionKind
+import com.mipresupuestocr.domain.model.CurrencyCode
 import com.mipresupuestocr.domain.model.ExchangeRate
 import com.mipresupuestocr.domain.model.Holding
 import com.mipresupuestocr.domain.model.ManualRateInput
@@ -14,6 +17,7 @@ import java.time.LocalDate
 interface TransactionRepository {
     fun observeAll(): Flow<List<Transaction>>
     fun observeBetween(start: LocalDate, endInclusive: LocalDate): Flow<List<Transaction>>
+    suspend fun getBetween(start: LocalDate, endInclusive: LocalDate): List<Transaction>
     suspend fun getById(id: Long): Transaction?
     suspend fun upsert(transaction: Transaction): Long
     suspend fun delete(id: Long)
@@ -25,6 +29,23 @@ interface CategoryRepository {
     suspend fun upsert(category: Category): Long
     suspend fun replaceAll(categories: List<Category>)
     suspend fun delete(id: Long)
+}
+
+/** Manual corrections of period figures, kept apart from real entries so history stays honest. */
+interface BalanceCorrectionRepository {
+    fun observeAll(): Flow<List<BalanceCorrection>>
+    suspend fun getAll(): List<BalanceCorrection>
+
+    /** Replaces the correction for one slot. A zero amount removes it. */
+    suspend fun set(
+        periodStart: LocalDate,
+        kind: CorrectionKind,
+        categoryId: Long? = null,
+        amountMinor: Long,
+        currency: CurrencyCode = CurrencyCode.CRC,
+    )
+
+    suspend fun clear(periodStart: LocalDate, kind: CorrectionKind, categoryId: Long? = null)
 }
 
 interface HoldingRepository {

@@ -52,6 +52,8 @@ data class CategoryProgress(
     /** spent / target, or null when no target is set. Values above 1 mean over budget. */
     val progressFraction: Double?,
     val remaining: Money?,
+    /** True when the spent figure was corrected by hand rather than summed from entries. */
+    val isAdjusted: Boolean = false,
 ) {
     val isOverBudget: Boolean get() = progressFraction != null && progressFraction > 1.0
 }
@@ -65,8 +67,29 @@ data class BudgetSummary(
     val plannedExpenses: Money,
     val categoryProgress: List<CategoryProgress>,
     val uncategorizedSpent: Money,
+    /** True when the income figure was corrected by hand rather than summed from entries. */
+    val incomeAdjusted: Boolean = false,
 ) {
     /** True when the user has recorded nothing and defined no targets yet. */
     val isEmpty: Boolean
         get() = income.isZero && spent.isZero && categoryProgress.none { it.target != null }
 }
+
+enum class CorrectionKind { INCOME, SPENT }
+
+/**
+ * A hand correction of one period figure, stored as a delta instead of an extra entry.
+ *
+ * The user types the total they know is right (for example the real spent amount after fixing a
+ * typo); the app keeps the difference here, so the visible history stays exactly what happened and
+ * later entries keep adding up correctly. A correction in the income slot also moves the
+ * remaining/available figure, because available is income minus spent.
+ */
+data class BalanceCorrection(
+    val periodStart: LocalDate,
+    val kind: CorrectionKind,
+    /** Null for the periods income and unallocated spending slots. */
+    val categoryId: Long? = null,
+    val amountMinor: Long,
+    val currency: CurrencyCode = CurrencyCode.CRC,
+)

@@ -48,8 +48,8 @@ import com.mipresupuestocr.app.ui.components.SectionCard
 import com.mipresupuestocr.app.ui.components.TargetProgress
 import com.mipresupuestocr.app.ui.util.MoneyFormat
 import com.mipresupuestocr.app.ui.util.parseAmount
-import com.mipresupuestocr.domain.model.Category
 import com.mipresupuestocr.domain.model.CategoryBucket
+import com.mipresupuestocr.domain.model.CategoryProgress
 import com.mipresupuestocr.domain.model.CurrencyCode
 import com.mipresupuestocr.domain.model.Money
 import com.mipresupuestocr.domain.model.Transaction
@@ -64,7 +64,7 @@ fun BudgetScreen(
     viewModel: BudgetViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    var editingCategory by remember { mutableStateOf<Category?>(null) }
+    var editingCategory by remember { mutableStateOf<CategoryProgress?>(null) }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.budget_title)) }) },
@@ -180,7 +180,7 @@ fun BudgetScreen(
                             Column(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable { editingCategory = progress.category }
+                                    .clickable { editingCategory = progress }
                                     .padding(vertical = 6.dp),
                                 verticalArrangement = Arrangement.spacedBy(4.dp),
                             ) {
@@ -222,6 +222,13 @@ fun BudgetScreen(
                                     Text(
                                         text = stringResource(R.string.budget_no_target) +
                                             " · " + stringResource(R.string.action_set_target),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary,
+                                    )
+                                }
+                                if (progress.isAdjusted) {
+                                    Text(
+                                        text = stringResource(R.string.balance_adjusted_chip),
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.primary,
                                     )
@@ -277,12 +284,17 @@ fun BudgetScreen(
         }
     }
 
-    editingCategory?.let { category ->
-        TargetDialog(
-            category = category,
+    editingCategory?.let { progress ->
+        CategoryDialog(
+            progress = progress,
             onDismiss = { editingCategory = null },
-            onSave = { target ->
-                viewModel.setTarget(category, target)
+            onSave = { target, spent ->
+                viewModel.setTarget(progress.category, target)
+                if (spent != null) viewModel.setCategoryBalance(progress.category.id, spent)
+                editingCategory = null
+            },
+            onClearCorrection = {
+                viewModel.setCategoryBalance(progress.category.id, null)
                 editingCategory = null
             },
         )
@@ -331,16 +343,23 @@ private fun TransactionRow(
 }
 
 @Composable
-private fun TargetDialog(
-    category: Category,
+private fun CategoryDialog(
+    progress: CategoryProgress,
     onDismiss: () -> Unit,
-    onSave: (Money?) -> Unit,
+    onSave: (Money?, Money?) -> Unit,
+    onClearCorrection: () -> Unit,
 ) {
-    val initial = category.budgetTarget
-        ?.let { BigDecimal.valueOf(it.amountMinor, it.currency.decimals).toPlainString() }
-        .orEmpty()
-    var text by remember { mutableStateOf(initial) }
-    val parsed = parseAmount(text)
+    val category = progress.category
+    var targetText by remember {
+        mutableStateOf(category.budgetTarget?.let(::plainAmount).orEmpty())
+    }
+    var spentText by remember { mutableStateOf(plainAmount(progress.spent)) }
+
+    val targetValue = targetText.takeIf { it.isNotBlank() }?.let(::parseAmount)
+    val spentValue = parseAmount(spentText)
+    val canSave = (targetText.isBlank() || targetValue != null) &&
+        spentValue != null &&
+        spentValue.signum() >= 0
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -348,8 +367,8 @@ private fun TargetDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
-                    value = text,
-                    onValueChange = { text = it },
+                    value = targetText,
+                    onValueChange = { targetText = it },
                     label = { Text(stringResource(R.string.budget_target_field)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
@@ -359,27 +378,52 @@ private fun TargetDialog(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                OutlinedTextField(
+                    value = spentText,
+                    onValueChange = { spentText = it },
+                    label = { Text(stringResource(R.string.budget_balance_field)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(
+                    text = stringResource(R.string.budget_balance_helper),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (progress.isAdjusted) {
+                    Text(
+                        text = stringResource(R.string.balance_adjusted_notice),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
         },
         confirmButton = {
             TextButton(
                 onClick = {
-                    val amount = parsed?.takeIf { it.signum() > 0 }
+                    val target = targetValue?.takeIf { it.signum() > 0 }
                         ?.let { Money.of(it, CurrencyCode.CRC) }
-                    onSave(amount)
+                    val spent = spentValue?.let { Money.of(it, CurrencyCode.CRC) }
+                    onSave(target, spent)
                 },
-                enabled = parsed != null && parsed.signum() > 0,
-            ) {
-                Text(stringResource(R.string.action_save))
-            }
+                enabled = canSave,
+            ) { Text(stringResource(R.string.action_save)) }
         },
         dismissButton = {
             Row {
-                TextButton(onClick = { onSave(null) }) {
-                    Text(stringResource(R.string.action_delete))
+                if (progress.isAdjusted) {
+                    TextButton(onClick = onClearCorrection) {
+                        Text(stringResource(R.string.balance_clear))
+                    }
                 }
                 TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
             }
         },
     )
 }
+
+private fun plainAmount(money: Money): String =
+    BigDecimal.valueOf(money.amountMinor, money.currency.decimals)
+        .stripTrailingZeros()
+        .toPlainString()

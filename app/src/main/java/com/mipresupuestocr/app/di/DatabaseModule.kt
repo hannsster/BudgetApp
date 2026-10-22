@@ -3,6 +3,7 @@ package com.mipresupuestocr.app.di
 import android.content.Context
 import androidx.room.Room
 import com.mipresupuestocr.app.data.local.AppDatabase
+import com.mipresupuestocr.app.data.local.BalanceCorrectionDao
 import com.mipresupuestocr.app.data.local.CategoryDao
 import com.mipresupuestocr.app.data.local.HoldingDao
 import com.mipresupuestocr.app.data.local.QuoteCacheDao
@@ -23,8 +24,8 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.NAME)
-            // Schema version 1: add explicit migrations before bumping the version.
-            .fallbackToDestructiveMigration()
+            // Every version bump needs a migration here; never drop a user's budget.
+            .addMigrations(AppDatabase.MIGRATION_1_2)
             .build()
 
     @Provides
@@ -41,4 +42,8 @@ object DatabaseModule {
 
     @Provides
     fun provideQuoteCacheDao(database: AppDatabase): QuoteCacheDao = database.quoteCacheDao()
+
+    @Provides
+    fun provideBalanceCorrectionDao(database: AppDatabase): BalanceCorrectionDao =
+        database.balanceCorrectionDao()
 }

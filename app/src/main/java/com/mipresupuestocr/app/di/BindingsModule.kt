@@ -4,6 +4,7 @@ import com.mipresupuestocr.app.data.local.RoomQuoteCache
 import com.mipresupuestocr.app.data.local.RoomRateCache
 import com.mipresupuestocr.app.data.remote.OpenErApiExchangeRateProvider
 import com.mipresupuestocr.app.data.remote.TwelveDataMarketQuoteProvider
+import com.mipresupuestocr.app.data.repository.DefaultBalanceCorrectionRepository
 import com.mipresupuestocr.app.data.repository.DefaultCategoryRepository
 import com.mipresupuestocr.app.data.repository.DefaultHoldingRepository
 import com.mipresupuestocr.app.data.repository.DefaultQuoteRepository
@@ -14,6 +15,7 @@ import com.mipresupuestocr.app.data.settings.DefaultSettingsRepository
 import com.mipresupuestocr.app.data.settings.MarketDataKeySource
 import com.mipresupuestocr.domain.provider.ExchangeRateProvider
 import com.mipresupuestocr.domain.provider.MarketQuoteProvider
+import com.mipresupuestocr.domain.repository.BalanceCorrectionRepository
 import com.mipresupuestocr.domain.repository.CategoryRepository
 import com.mipresupuestocr.domain.repository.HoldingRepository
 import com.mipresupuestocr.domain.repository.QuoteCache
@@ -59,6 +61,12 @@ abstract class BindingsModule {
     @Binds
     @Singleton
     abstract fun bindMarketDataKeySource(impl: DataStoreMarketDataKeySource): MarketDataKeySource
+
+    @Binds
+    @Singleton
+    abstract fun bindBalanceCorrectionRepository(
+        impl: DefaultBalanceCorrectionRepository,
+    ): BalanceCorrectionRepository
 
     @Binds
     @Singleton

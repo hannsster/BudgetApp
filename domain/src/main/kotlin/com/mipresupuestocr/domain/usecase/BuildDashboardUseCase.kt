@@ -2,6 +2,7 @@ package com.mipresupuestocr.domain.usecase
 
 import com.mipresupuestocr.domain.model.AppError
 import com.mipresupuestocr.domain.model.AppResult
+import com.mipresupuestocr.domain.model.BalanceCorrection
 import com.mipresupuestocr.domain.model.Category
 import com.mipresupuestocr.domain.model.DashboardSnapshot
 import com.mipresupuestocr.domain.model.ExchangeRate
@@ -32,12 +33,13 @@ class BuildDashboardUseCase(
         holdings: List<Holding>,
         quotes: Map<String, Quote>,
         rate: ExchangeRate?,
+        corrections: List<BalanceCorrection> = emptyList(),
     ): AppResult<DashboardSnapshot> {
         val periodResult = periodResolver.resolve(settings, referenceDate)
         val period = periodResult.getOrNull()
             ?: return AppResult.failure(periodResult.errorOrNull() ?: AppError.Unknown)
 
-        val budget = progressCalculator.calculate(period, transactions, categories)
+        val budget = progressCalculator.calculate(period, transactions, categories, corrections)
         val portfolio = portfolioValuator.valuate(holdings, quotes, rate)
 
         return AppResult.success(

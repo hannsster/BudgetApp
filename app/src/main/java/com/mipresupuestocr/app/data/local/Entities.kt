@@ -39,6 +39,23 @@ data class HoldingEntity(
     val createdAtMillis: Long = 0L,
 )
 
+/**
+ * One hand correction per periods figure. Kept out of `transactions` on purpose: the history stays
+ * a record of what happened, while these rows explain why a total differs from it.
+ */
+@Entity(
+    tableName = "balance_corrections",
+    indices = [Index("periodStartEpochDay")],
+)
+data class BalanceCorrectionEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
+    val periodStartEpochDay: Long,
+    val kind: String,
+    val categoryId: Long? = null,
+    val currency: String,
+    val amountMinor: Long,
+)
+
 /** Cached rates: at most one "reference" row and one "manual" row. */
 @Entity(tableName = "rate_cache")
 data class RateCacheEntity(

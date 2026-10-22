@@ -1,13 +1,17 @@
 package com.mipresupuestocr.domain
 
 import com.mipresupuestocr.domain.model.AppResult
+import com.mipresupuestocr.domain.model.BalanceCorrection
 import com.mipresupuestocr.domain.model.Category
+import com.mipresupuestocr.domain.model.CorrectionKind
+import com.mipresupuestocr.domain.model.CurrencyCode
 import com.mipresupuestocr.domain.model.ExchangeRate
 import com.mipresupuestocr.domain.model.Holding
 import com.mipresupuestocr.domain.model.ManualRateInput
 import com.mipresupuestocr.domain.model.Quote
 import com.mipresupuestocr.domain.model.Transaction
 import com.mipresupuestocr.domain.model.UserSettings
+import com.mipresupuestocr.domain.repository.BalanceCorrectionRepository
 import com.mipresupuestocr.domain.repository.CategoryRepository
 import com.mipresupuestocr.domain.repository.HoldingRepository
 import com.mipresupuestocr.domain.repository.QuoteRepository
@@ -33,6 +37,9 @@ class FakeTransactionRepository(initial: List<Transaction> = emptyList()) : Tran
     override fun observeBetween(start: LocalDate, endInclusive: LocalDate): Flow<List<Transaction>> =
         state.map { rows -> rows.filter { !it.date.isBefore(start) && !it.date.isAfter(endInclusive) } }
 
+    override suspend fun getBetween(start: LocalDate, endInclusive: LocalDate): List<Transaction> =
+        state.value.filter { !it.date.isBefore(start) && !it.date.isAfter(endInclusive) }
+
     override suspend fun getById(id: Long): Transaction? = state.value.firstOrNull { it.id == id }
 
     override suspend fun upsert(transaction: Transaction): Long {
@@ -44,6 +51,47 @@ class FakeTransactionRepository(initial: List<Transaction> = emptyList()) : Tran
 
     override suspend fun delete(id: Long) {
         state.value = state.value.filterNot { it.id == id }
+    }
+}
+
+class FakeBalanceCorrectionRepository(
+    initial: List<BalanceCorrection> = emptyList(),
+) : BalanceCorrectionRepository {
+
+    private val state = MutableStateFlow(initial)
+
+    override fun observeAll(): Flow<List<BalanceCorrection>> = state
+
+    override suspend fun getAll(): List<BalanceCorrection> = state.value
+
+    override suspend fun set(
+        periodStart: LocalDate,
+        kind: CorrectionKind,
+        categoryId: Long?,
+        amountMinor: Long,
+        currency: CurrencyCode,
+    ) {
+        state.value = state.value.filterNot {
+            it.periodStart == periodStart && it.kind == kind && it.categoryId == categoryId
+        } + if (amountMinor == 0L) {
+            emptyList()
+        } else {
+            listOf(
+                BalanceCorrection(
+                    periodStart = periodStart,
+                    kind = kind,
+                    categoryId = categoryId,
+                    amountMinor = amountMinor,
+                    currency = currency,
+                ),
+            )
+        }
+    }
+
+    override suspend fun clear(periodStart: LocalDate, kind: CorrectionKind, categoryId: Long?) {
+        state.value = state.value.filterNot {
+            it.periodStart == periodStart && it.kind == kind && it.categoryId == categoryId
+        }
     }
 }
 

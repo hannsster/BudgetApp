@@ -1,6 +1,7 @@
 package com.mipresupuestocr.app.ui.dashboard
 
 import android.text.format.DateFormat
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,11 +14,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.ChevronLeft
 import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -34,12 +39,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,7 +63,11 @@ import com.mipresupuestocr.app.ui.components.StatusChip
 import com.mipresupuestocr.app.ui.components.TargetProgress
 import com.mipresupuestocr.app.ui.theme.positiveColor
 import com.mipresupuestocr.app.ui.util.MoneyFormat
+import com.mipresupuestocr.app.ui.util.parseAmount
 import com.mipresupuestocr.domain.model.CategoryProgress
+import com.mipresupuestocr.domain.model.CurrencyCode
+import com.mipresupuestocr.domain.model.Money
+import java.math.BigDecimal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,12 +80,14 @@ fun DashboardScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    var balanceField by remember { mutableStateOf<BalanceField?>(null) }
 
     LaunchedEffect(state.message) {
         val pending = state.message ?: return@LaunchedEffect
         val text = when (pending) {
             DashboardMessage.Refreshed -> context.getString(R.string.dashboard_refresh_done)
             DashboardMessage.RefreshedFromCache -> context.getString(R.string.dashboard_stale)
+            DashboardMessage.BalanceAdjusted -> context.getString(R.string.balance_adjusted_saved)
             is DashboardMessage.MissingPrices -> context.getString(
                 R.string.dashboard_refresh_partial,
                 pending.tickers.joinToString(", "),
@@ -81,6 +95,44 @@ fun DashboardScreen(
         }
         snackbarHostState.showSnackbar(text)
         viewModel.consumeMessage()
+    }
+
+    val activeSnapshot = state.snapshot
+    balanceField?.let { field ->
+        val budget = activeSnapshot?.budget
+        if (budget != null) {
+            val amount = when (field) {
+                BalanceField.INCOME -> budget.income
+                BalanceField.SPENT -> budget.spent
+                BalanceField.AVAILABLE -> budget.remaining
+            }
+            BalanceDialog(
+                field = field,
+                initial = amount,
+                isAdjusted = when (field) {
+                    BalanceField.INCOME -> budget.incomeAdjusted
+                    BalanceField.SPENT -> false
+                    BalanceField.AVAILABLE -> budget.incomeAdjusted
+                },
+                onDismiss = { balanceField = null },
+                onSave = { text ->
+                    when (field) {
+                        BalanceField.INCOME -> viewModel.setIncomeBalance(text)
+                        BalanceField.SPENT -> viewModel.setSpentBalance(text)
+                        BalanceField.AVAILABLE -> viewModel.setAvailableBalance(text)
+                    }
+                    balanceField = null
+                },
+                onClear = {
+                    when (field) {
+                        BalanceField.INCOME -> viewModel.clearIncomeCorrection()
+                        BalanceField.SPENT -> viewModel.clearSpentCorrection()
+                        BalanceField.AVAILABLE -> viewModel.clearIncomeCorrection()
+                    }
+                    balanceField = null
+                },
+            )
+        }
     }
 
     Scaffold(
@@ -158,20 +210,41 @@ fun DashboardScreen(
 
                 item {
                     SectionCard {
-                        Text(
-                            text = stringResource(R.string.dashboard_remaining),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        Text(
-                            text = MoneyFormat.format(budget.remaining),
-                            style = MaterialTheme.typography.displaySmall,
-                            color = if (budget.remaining.isNegative) {
-                                MaterialTheme.colorScheme.error
-                            } else {
-                                MaterialTheme.colorScheme.primary
-                            },
-                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { balanceField = BalanceField.AVAILABLE },
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        text = stringResource(R.string.dashboard_remaining),
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    if (budget.incomeAdjusted) {
+                                        Spacer(Modifier.width(6.dp))
+                                        StatusChip(stringResource(R.string.balance_adjusted_chip))
+                                    }
+                                }
+                                Text(
+                                    text = MoneyFormat.format(budget.remaining),
+                                    style = MaterialTheme.typography.displaySmall,
+                                    color = if (budget.remaining.isNegative) {
+                                        MaterialTheme.colorScheme.error
+                                    } else {
+                                        MaterialTheme.colorScheme.primary
+                                    },
+                                )
+                            }
+                            Icon(
+                                imageVector = Icons.Outlined.Edit,
+                                contentDescription = stringResource(R.string.cd_edit_amount),
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
                         if (budget.income.isPositive) {
                             val fraction = (budget.spent.amountMinor.toDouble() / budget.income.amountMinor)
                                 .coerceIn(0.0, 1.0)
@@ -186,10 +259,18 @@ fun DashboardScreen(
                         KeyValueRow(
                             label = stringResource(R.string.dashboard_income),
                             value = MoneyFormat.format(budget.income),
+                            adjusted = budget.incomeAdjusted,
+                            onClick = { balanceField = BalanceField.INCOME },
                         )
                         KeyValueRow(
                             label = stringResource(R.string.dashboard_spent),
                             value = MoneyFormat.format(budget.spent),
+                            onClick = { balanceField = BalanceField.SPENT },
+                        )
+                        Text(
+                            text = stringResource(R.string.balance_adjust_hint),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -421,4 +502,79 @@ private fun PortfolioSummaryCard(
             }
         }
     }
+}
+
+private enum class BalanceField { INCOME, SPENT, AVAILABLE }
+
+/**
+ * Corrects one period figure. The dialog shows the current value and explains what the correction
+ * does; nothing is written to the transaction history.
+ */
+@Composable
+private fun BalanceDialog(
+    field: BalanceField,
+    initial: Money,
+    isAdjusted: Boolean,
+    onDismiss: () -> Unit,
+    onSave: (String) -> Unit,
+    onClear: () -> Unit,
+) {
+    val initialText = remember(field, initial.amountMinor) {
+        BigDecimal.valueOf(initial.amountMinor, initial.currency.decimals)
+            .stripTrailingZeros()
+            .toPlainString()
+    }
+    var text by remember(field) { mutableStateOf(initialText) }
+    val parsed = parseAmount(text)
+
+    val titleRes = when (field) {
+        BalanceField.INCOME -> R.string.balance_income_title
+        BalanceField.SPENT -> R.string.balance_spent_title
+        BalanceField.AVAILABLE -> R.string.balance_available_title
+    }
+    val helperRes = when (field) {
+        BalanceField.INCOME -> R.string.balance_income_helper
+        BalanceField.SPENT -> R.string.balance_spent_helper
+        BalanceField.AVAILABLE -> R.string.balance_available_helper
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(titleRes)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it },
+                    label = { Text(stringResource(R.string.balance_amount_label)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(
+                    text = stringResource(helperRes),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onSave(text) },
+                enabled = parsed != null && parsed.signum() >= 0,
+            ) { Text(stringResource(R.string.action_save)) }
+        },
+        dismissButton = {
+            Row {
+                if (isAdjusted) {
+                    TextButton(onClick = onClear) {
+                        Text(stringResource(R.string.balance_clear))
+                    }
+                }
+                TextButton(onClick = onDismiss) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            }
+        },
+    )
 }

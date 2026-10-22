@@ -17,6 +17,12 @@ interface TransactionDao {
     )
     fun observeBetween(fromEpochDay: Long, toEpochDay: Long): Flow<List<TransactionEntity>>
 
+    @Query(
+        "SELECT * FROM transactions WHERE dateEpochDay BETWEEN :fromEpochDay AND :toEpochDay " +
+            "ORDER BY dateEpochDay DESC, id DESC",
+    )
+    suspend fun getBetween(fromEpochDay: Long, toEpochDay: Long): List<TransactionEntity>
+
     @Query("SELECT * FROM transactions WHERE id = :id")
     suspend fun getById(id: Long): TransactionEntity?
 
@@ -46,6 +52,24 @@ interface CategoryDao {
 
     @Query("DELETE FROM categories WHERE id = :id")
     suspend fun delete(id: Long)
+}
+
+@Dao
+interface BalanceCorrectionDao {
+    @Query("SELECT * FROM balance_corrections")
+    fun observeAll(): Flow<List<BalanceCorrectionEntity>>
+
+    @Query("SELECT * FROM balance_corrections")
+    suspend fun getAll(): List<BalanceCorrectionEntity>
+
+    @Query(
+        "DELETE FROM balance_corrections WHERE periodStartEpochDay = :periodStartEpochDay " +
+            "AND kind = :kind AND categoryId IS :categoryId",
+    )
+    suspend fun clear(periodStartEpochDay: Long, kind: String, categoryId: Long?)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(entity: BalanceCorrectionEntity)
 }
 
 @Dao

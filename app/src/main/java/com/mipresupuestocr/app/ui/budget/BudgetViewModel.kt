@@ -3,16 +3,22 @@ package com.mipresupuestocr.app.ui.budget
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mipresupuestocr.domain.model.AppError
+import com.mipresupuestocr.domain.model.AppResult
+import com.mipresupuestocr.domain.model.BalanceCorrection
 import com.mipresupuestocr.domain.model.BudgetPeriod
 import com.mipresupuestocr.domain.model.BudgetSummary
 import com.mipresupuestocr.domain.model.Category
+import com.mipresupuestocr.domain.model.CorrectionKind
 import com.mipresupuestocr.domain.model.Money
 import com.mipresupuestocr.domain.model.Transaction
+import com.mipresupuestocr.domain.repository.BalanceCorrectionRepository
 import com.mipresupuestocr.domain.repository.CategoryRepository
 import com.mipresupuestocr.domain.repository.SettingsRepository
 import com.mipresupuestocr.domain.repository.TransactionRepository
 import com.mipresupuestocr.domain.usecase.BudgetPeriodResolver
 import com.mipresupuestocr.domain.usecase.BudgetProgressCalculator
+import com.mipresupuestocr.domain.usecase.ClearBalanceCorrectionUseCase
+import com.mipresupuestocr.domain.usecase.SetCategoryBalanceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -39,8 +45,11 @@ class BudgetViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,
     private val categoryRepository: CategoryRepository,
     private val settingsRepository: SettingsRepository,
+    correctionRepository: BalanceCorrectionRepository,
     private val periodResolver: BudgetPeriodResolver,
     private val progressCalculator: BudgetProgressCalculator,
+    private val setBalance: SetCategoryBalanceUseCase,
+    private val clearCorrection: ClearBalanceCorrectionUseCase,
     private val clock: Clock,
 ) : ViewModel() {
 
@@ -50,6 +59,7 @@ class BudgetViewModel @Inject constructor(
         val transactions: List<Transaction>,
         val categories: List<Category>,
         val error: AppError?,
+        val corrections: List<BalanceCorrection> = emptyList(),
     )
 
     private val selectedPeriod = MutableStateFlow<BudgetPeriod?>(null)
@@ -60,8 +70,9 @@ class BudgetViewModel @Inject constructor(
         settingsRepository.observeSettings(),
         transactionRepository.observeAll(),
         categoryRepository.observeAll(),
+        correctionRepository.observeAll(),
         selectedPeriod,
-    ) { settings, transactions, categories, period ->
+    ) { settings, transactions, categories, corrections, period ->
         val effectivePeriod = period
             ?.takeIf { it.type == settings.periodType }
             ?: periodResolver.resolve(settings, LocalDate.now(clock)).getOrNull()
@@ -74,10 +85,16 @@ class BudgetViewModel @Inject constructor(
                 .sortedWith(compareByDescending<Transaction> { it.date }.thenByDescending { it.id })
             Resolved(
                 period = effectivePeriod,
-                summary = progressCalculator.calculate(effectivePeriod, transactions, categories),
+                summary = progressCalculator.calculate(
+                    period = effectivePeriod,
+                    transactions = transactions,
+                    categories = categories,
+                    corrections = corrections,
+                ),
                 transactions = inPeriod,
                 categories = categories,
                 error = null,
+                corrections = corrections,
             )
         }
     }
@@ -107,6 +124,29 @@ class BudgetViewModel @Inject constructor(
             isSaving.value = true
             runCatching { categoryRepository.upsert(category.copy(budgetTarget = target)) }
                 .onFailure { error.value = AppError.Unknown }
+            isSaving.value = false
+        }
+    }
+
+    /**
+     * Sets one category's spent total to the exact amount the user typed, or clears the correction
+     * when [target] is null. The difference is stored as a correction, never as an entry.
+     */
+    fun setCategoryBalance(categoryId: Long, target: Money?) {
+        viewModelScope.launch {
+            val period = uiState.value.period ?: return@launch
+            isSaving.value = true
+            error.value = null
+            error.value = if (target == null) {
+                runCatching { clearCorrection(period, CorrectionKind.SPENT, categoryId) }
+                    .exceptionOrNull()
+                    ?.let { AppError.Unknown }
+            } else {
+                when (val result = setBalance(period, categoryId, target)) {
+                    is AppResult.Success -> null
+                    is AppResult.Failure -> result.error
+                }
+            }
             isSaving.value = false
         }
     }

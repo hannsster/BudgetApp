@@ -34,19 +34,19 @@ object MoneyFormat {
     fun formatValue(value: BigDecimal, currency: CurrencyCode): String =
         format(Money.of(value, currency))
 
-    /** Price per unit, shown with up to four decimals when the provider supplies them. */
+    /** Price per unit. Always two decimals, matching every other number in the app. */
     fun formatPrice(value: BigDecimal): String {
         val format = NumberFormat.getNumberInstance(UnitedStates)
         format.minimumFractionDigits = 2
-        format.maximumFractionDigits = 4
+        format.maximumFractionDigits = 2
         return format.format(value)
     }
 
-    /** Exchange rates are quoted with two decimals; more precision is kept if provided. */
+    /** Exchange rates, quoted with the colón's two decimals. */
     fun formatRate(value: BigDecimal): String {
         val format = NumberFormat.getNumberInstance(CostaRica)
         format.minimumFractionDigits = 2
-        format.maximumFractionDigits = 4
+        format.maximumFractionDigits = 2
         return format.format(value)
     }
 
@@ -57,10 +57,11 @@ object MoneyFormat {
         return "${format.format(value)}%"
     }
 
+    /** Whole units stay whole ("3"), fractional ones are capped at two decimals ("3.25"). */
     fun formatShares(value: BigDecimal): String {
         val format = NumberFormat.getNumberInstance(UnitedStates)
         format.minimumFractionDigits = 0
-        format.maximumFractionDigits = 4
+        format.maximumFractionDigits = 2
         return format.format(value)
     }
 

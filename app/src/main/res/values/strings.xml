@@ -67,7 +67,9 @@
     <string name="budget_add_expense">Registrar gasto</string>
     <string name="budget_empty_categories">Agrega categorías para definir metas.</string>
     <string name="budget_planned_label">Metas del periodo</string>
-    <string name="budget_target_dialog_hint">Usa Eliminar para quitar la meta. La meta se aplica a cada periodo.</string>
+    <string name="budget_target_dialog_hint">Deja el monto vacío para quitar la meta. La meta se aplica a cada periodo.</string>
+    <string name="budget_balance_field">Gastado actual</string>
+    <string name="budget_balance_helper">Escribe el total correcto: la app guarda la diferencia sin crear una transacción.</string>
 
     <!-- Transactions -->
     <string name="transaction_new_title">Nuevo movimiento</string>
@@ -159,6 +161,21 @@
     <string name="settings_market_key_remove">Eliminar clave</string>
     <string name="settings_market_key_saved">Clave guardada</string>
     <string name="settings_market_key_cleared">Clave eliminada</string>
+
+    <!-- Balance corrections -->
+    <string name="cd_edit_amount">Corregir monto</string>
+    <string name="balance_adjust_hint">Toca un monto para corregirlo si hubo un error de digitación.</string>
+    <string name="balance_adjusted_chip">Ajustado</string>
+    <string name="balance_adjusted_saved">Saldo corregido</string>
+    <string name="balance_adjusted_notice">Esta cifra fue corregida a mano. Puedes quitarla abajo.</string>
+    <string name="balance_amount_label">Monto correcto</string>
+    <string name="balance_clear">Quitar corrección</string>
+    <string name="balance_income_title">Corregir ingreso del periodo</string>
+    <string name="balance_income_helper">Se guarda como corrección de este periodo. Tus transacciones no cambian y el disponible se ajusta solo.</string>
+    <string name="balance_spent_title">Corregir gasto del periodo</string>
+    <string name="balance_spent_helper">La diferencia se guarda como gasto sin categoría en este periodo. Tus transacciones no cambian.</string>
+    <string name="balance_available_title">Corregir disponible</string>
+    <string name="balance_available_helper">El disponible es ingreso menos gasto, así que esta corrección cambia el ingreso del periodo.</string>
     <string name="settings_data_title">Datos y privacidad</string>
     <string name="settings_data_note">Tus datos se guardan solo en este dispositivo. No hay servidor, cuenta ni respaldo en la nube.</string>
     <string name="settings_about_title">Acerca de</string>

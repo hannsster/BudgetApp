@@ -1,12 +1,16 @@
 package com.mipresupuestocr.app.data.repository
 
+import com.mipresupuestocr.app.data.local.BalanceCorrectionDao
+import com.mipresupuestocr.app.data.local.BalanceCorrectionEntity
 import com.mipresupuestocr.app.data.local.CategoryDao
 import com.mipresupuestocr.app.data.local.HoldingDao
 import com.mipresupuestocr.app.data.local.TransactionDao
 import com.mipresupuestocr.app.data.local.toDomain
 import com.mipresupuestocr.app.data.local.toEntity
 import com.mipresupuestocr.domain.model.AppResult
+import com.mipresupuestocr.domain.model.BalanceCorrection
 import com.mipresupuestocr.domain.model.Category
+import com.mipresupuestocr.domain.model.CorrectionKind
 import com.mipresupuestocr.domain.model.CurrencyCode
 import com.mipresupuestocr.domain.model.ExchangeRate
 import com.mipresupuestocr.domain.model.Holding
@@ -15,6 +19,7 @@ import com.mipresupuestocr.domain.model.Quote
 import com.mipresupuestocr.domain.model.Transaction
 import com.mipresupuestocr.domain.provider.ExchangeRateProvider
 import com.mipresupuestocr.domain.provider.MarketQuoteProvider
+import com.mipresupuestocr.domain.repository.BalanceCorrectionRepository
 import com.mipresupuestocr.domain.repository.CategoryRepository
 import com.mipresupuestocr.domain.repository.HoldingRepository
 import com.mipresupuestocr.domain.repository.QuoteCache
@@ -40,11 +45,49 @@ class DefaultTransactionRepository @Inject constructor(
         dao.observeBetween(start.toEpochDay(), endInclusive.toEpochDay())
             .map { rows -> rows.map { it.toDomain() } }
 
+    override suspend fun getBetween(start: LocalDate, endInclusive: LocalDate): List<Transaction> =
+        dao.getBetween(start.toEpochDay(), endInclusive.toEpochDay()).map { it.toDomain() }
+
     override suspend fun getById(id: Long): Transaction? = dao.getById(id)?.toDomain()
 
     override suspend fun upsert(transaction: Transaction): Long = dao.upsert(transaction.toEntity())
 
     override suspend fun delete(id: Long) = dao.delete(id)
+}
+
+@Singleton
+class DefaultBalanceCorrectionRepository @Inject constructor(
+    private val dao: BalanceCorrectionDao,
+) : BalanceCorrectionRepository {
+
+    override fun observeAll(): Flow<List<BalanceCorrection>> =
+        dao.observeAll().map { rows -> rows.map { it.toDomain() } }
+
+    override suspend fun getAll(): List<BalanceCorrection> = dao.getAll().map { it.toDomain() }
+
+    override suspend fun set(
+        periodStart: LocalDate,
+        kind: CorrectionKind,
+        categoryId: Long?,
+        amountMinor: Long,
+        currency: CurrencyCode,
+    ) {
+        dao.clear(periodStart.toEpochDay(), kind.name, categoryId)
+        if (amountMinor == 0L) return
+        dao.insert(
+            BalanceCorrectionEntity(
+                periodStartEpochDay = periodStart.toEpochDay(),
+                kind = kind.name,
+                categoryId = categoryId,
+                currency = currency.isoCode,
+                amountMinor = amountMinor,
+            ),
+        )
+    }
+
+    override suspend fun clear(periodStart: LocalDate, kind: CorrectionKind, categoryId: Long?) {
+        dao.clear(periodStart.toEpochDay(), kind.name, categoryId)
+    }
 }
 
 @Singleton

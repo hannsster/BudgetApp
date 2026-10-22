@@ -46,8 +46,10 @@ class AddEditHoldingViewModel @Inject constructor(
     private val holdingId: Long =
         savedStateHandle.get<Long>(Routes.HOLDING_ID_ARG) ?: Routes.NEW_TRANSACTION_ID
 
+    // A new holding has nothing to load, so it must not start in the loading state; an existing
+    // one stays on the spinner until its row arrives (see init).
     private val _uiState = MutableStateFlow(
-        HoldingFormState(isEditing = holdingId > 0, isLoading = holdingId <= 0),
+        HoldingFormState(isEditing = holdingId > 0, isLoading = holdingId > 0),
     )
     val uiState: StateFlow<HoldingFormState> = _uiState.asStateFlow()
 

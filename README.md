@@ -64,6 +64,8 @@ without a purchase price; prices simply stay blank and are labelled as such.
   in USD and CRC, allocation percentage, unrealised gain/loss, last update and data source.
 - **Automatic USD/CRC conversion** — reference rate fetched from a provider, cached for offline use, with a
   clearly labelled manual override.
+- **Correct a balance without fake entries** — set the available, income, spending or a category's total to the
+  right number; the difference is kept as a period correction, marked as adjusted, and removable again.
 - **Background refresh** — WorkManager refreshes rates and quotes every six hours when a connection exists.
 - **Privacy-first defaults** — app data is excluded from backup; no analytics, tracking or ads.
 

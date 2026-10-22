@@ -49,6 +49,20 @@ required. To update later, install a newer APK over the old one — your data is
 
 Targets apply to every period of the selected type, not just the current month.
 
+## Correcting a balance
+
+A typing mistake no longer means inventing a compensating entry that confuses you later.
+
+- On the dashboard, tap the available figure, or the income or spending row.
+- On the budget screen, tap a category to set both its target and its current spent total.
+
+Type the total you know is right and save. The app keeps only the difference, for that period, so the visible
+history stays exactly what happened and every later entry still adds up. A corrected figure is marked
+**Ajustado**; open the same dialog and choose **Quitar corrección** to return it to the sum of your entries.
+
+Available is defined as income minus spending, so correcting it changes the period's income figure — the dialog
+says so before you save.
+
 ## Monthly vs biweekly budgeting
 
 - **Monthly** follows the calendar month.

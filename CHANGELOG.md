@@ -6,6 +6,28 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-22
+
+### Added
+
+- Balance corrections: tap the available, income or spending figure on the dashboard, or a category on the
+  budget screen, and type the total you know is right. The difference is stored per period as a correction, so
+  the transaction history stays exactly what happened and later entries keep adding up. Corrected figures are
+  marked "Ajustado" and can be removed again.
+- `balance_corrections` table with a real version 1 → 2 Room migration, covered by a migration test that keeps
+  existing budgets and entries.
+
+### Fixed
+
+- Adding a new ETF position showed the spinner forever with no form, because a new holding started in the
+  loading state that only the edit path ever cleared.
+
+### Changed
+
+- All numbers are limited to two decimals: prices and exchange rates no longer show four, share counts are
+  capped at two, and money keeps its currency's two decimals.
+- Version bumped to 1.2.0 (versionCode 3).
+
 ## [1.1.0] - 2026-10-22
 
 ### Added
