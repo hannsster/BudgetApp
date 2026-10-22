@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MiPresupuesto CR</string>
+
+    <!-- Navigation -->
+    <string name="nav_dashboard">Inicio</string>
+    <string name="nav_budget">Presupuesto</string>
+    <string name="nav_calculator">Calculadora</string>
+    <string name="nav_portfolio">Portafolio</string>
+    <string name="nav_settings">Ajustes</string>
+
+    <!-- Common actions -->
+    <string name="action_refresh">Actualizar</string>
+    <string name="action_save">Guardar</string>
+    <string name="action_delete">Eliminar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_close">Cerrar</string>
+    <string name="action_retry">Reintentar</string>
+    <string name="action_set_target">Establecer meta</string>
+    <string name="action_clear_manual_rate">Quitar tasa manual</string>
+    <string name="action_save_manual_rate">Guardar tasa manual</string>
+
+    <string name="cd_refresh">Actualizar datos</string>
+    <string name="cd_previous_period">Periodo anterior</string>
+    <string name="cd_next_period">Periodo siguiente</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">Resumen</string>
+    <string name="dashboard_period">%1$s – %2$s</string>
+    <string name="dashboard_income">Ingresos del periodo</string>
+    <string name="dashboard_spent">Gastos</string>
+    <string name="dashboard_remaining">Disponible</string>
+    <string name="dashboard_fx_title">Tipo de cambio USD/CRC</string>
+    <string name="dashboard_portfolio_title">Portafolio</string>
+    <string name="dashboard_categories_title">Metas por categoría</string>
+    <string name="dashboard_empty_title">Empieza con tu primer movimiento</string>
+    <string name="dashboard_empty_body">Registra un ingreso o un gasto para ver tu presupuesto y tus metas en este periodo.</string>
+    <plurals name="dashboard_unpriced">
+        <item quantity="one">%1$d posición sin precio</item>
+        <item quantity="other">%1$d posiciones sin precio</item>
+    </plurals>
+    <string name="dashboard_updated">Actualizado %1$s</string>
+    <string name="dashboard_not_updated">Sin actualizar</string>
+    <string name="dashboard_stale">Datos antiguos</string>
+    <string name="dashboard_manual_badge">Tasa manual</string>
+    <string name="dashboard_source">Fuente: %1$s</string>
+    <string name="dashboard_gain">Ganancia no realizada</string>
+    <string name="dashboard_loss">Pérdida no realizada</string>
+    <string name="dashboard_usd">USD</string>
+    <string name="dashboard_crc">CRC</string>
+    <string name="dashboard_refresh_running">Actualizando…</string>
+    <string name="dashboard_refresh_done">Datos actualizados</string>
+    <string name="dashboard_refresh_partial">Sin precio para: %1$s</string>
+
+    <!-- Budget -->
+    <string name="budget_title">Presupuesto</string>
+    <string name="budget_income_title">Ingresos</string>
+    <string name="budget_expenses_title">Gastos del periodo</string>
+    <string name="budget_no_transactions">Todavía no hay movimientos en este periodo.</string>
+    <string name="budget_target_progress">%1$s de %2$s</string>
+    <string name="budget_no_target">Sin meta</string>
+    <string name="budget_over">%1$s sobre la meta</string>
+    <string name="budget_uncategorized">Sin categoría: %1$s</string>
+    <string name="budget_set_target_title">Meta para %1$s</string>
+    <string name="budget_target_field">Monto en colones</string>
+    <string name="budget_add_transaction">Nuevo movimiento</string>
+    <string name="budget_add_expense">Registrar gasto</string>
+    <string name="budget_empty_categories">Agrega categorías para definir metas.</string>
+    <string name="budget_planned_label">Metas del periodo</string>
+    <string name="budget_target_dialog_hint">Usa Eliminar para quitar la meta. La meta se aplica a cada periodo.</string>
+
+    <!-- Transactions -->
+    <string name="transaction_new_title">Nuevo movimiento</string>
+    <string name="transaction_edit_title">Editar movimiento</string>
+    <string name="transaction_type_expense">Gasto</string>
+    <string name="transaction_type_income">Ingreso</string>
+    <string name="transaction_amount">Monto en colones</string>
+    <string name="transaction_category">Categoría</string>
+    <string name="transaction_date">Fecha</string>
+    <string name="transaction_note">Nota (opcional)</string>
+    <string name="transaction_no_category">Sin categoría</string>
+    <string name="transaction_delete_title">¿Eliminar movimiento?</string>
+    <string name="transaction_delete_body">Esta acción no se puede deshacer.</string>
+
+    <!-- Calculator -->
+    <string name="calculator_title">Calculadora 50/30/20</string>
+    <string name="calculator_income">Ingreso neto por pago</string>
+    <string name="calculator_frequency">Frecuencia</string>
+    <string name="calculator_monthly">Mensual</string>
+    <string name="calculator_biweekly">Quincenal</string>
+    <string name="calculator_weekly">Semanal</string>
+    <string name="calculator_result">Distribución sugerida</string>
+    <string name="calculator_needs">Necesidades</string>
+    <string name="calculator_wants">Deseos</string>
+    <string name="calculator_savings">Ahorro e inversión</string>
+    <string name="calculator_custom_split">División personalizada</string>
+    <string name="calculator_split_hint">Los tres porcentajes deben sumar 100.</string>
+    <string name="calculator_split_needs">Necesidades (%)</string>
+    <string name="calculator_split_wants">Deseos (%)</string>
+    <string name="calculator_split_savings">Ahorro (%)</string>
+    <string name="calculator_reset_split">Volver a 50/30/20</string>
+    <string name="calculator_apply_split">Usar esta división</string>
+    <string name="calculator_split_applied">División guardada</string>
+    <string name="calculator_invalid_split">Los porcentajes deben sumar 100.</string>
+    <string name="calculator_note">La conversión quincenal usa 26 pagos al año y la semanal 52.</string>
+    <string name="calculator_total">Total</string>
+    <string name="calculator_monthly_value">Equivalente mensual: %1$s</string>
+
+    <!-- Portfolio -->
+    <string name="portfolio_title">Portafolio</string>
+    <string name="portfolio_total">Valor total</string>
+    <string name="portfolio_empty_title">Tu portafolio está vacío</string>
+    <string name="portfolio_empty_body">Agrega tus ETF manualmente con el ticker, las unidades y, si quieres, el precio promedio de compra.</string>
+    <string name="portfolio_add_holding">Agregar ETF</string>
+    <string name="portfolio_missing_key_title">Falta la clave de datos de mercado</string>
+    <string name="portfolio_missing_key_body">Agrega TWELVE_DATA_API_KEY en local.properties y vuelve a compilar para actualizar precios automáticamente. Mientras tanto puedes registrar posiciones sin precio.</string>
+    <string name="portfolio_value_usd">Valor USD</string>
+    <string name="portfolio_value_crc">Valor CRC</string>
+    <string name="portfolio_allocation">Asignación</string>
+    <string name="portfolio_no_price">Sin precio</string>
+    <string name="portfolio_unpriced_banner">Sin precio: %1$s</string>
+    <string name="portfolio_source">Fuente: %1$s</string>
+    <string name="portfolio_updated">Actualizado %1$s</string>
+    <string name="portfolio_delete_title">¿Eliminar posición?</string>
+    <string name="portfolio_delete_body">Se eliminará %1$s del portafolio.</string>
+    <string name="portfolio_units_price">%1$s unidades × $%2$s</string>
+
+    <!-- Holdings -->
+    <string name="holding_new_title">Nueva posición</string>
+    <string name="holding_edit_title">Editar posición</string>
+    <string name="holding_ticker_label">Ticker del ETF</string>
+    <string name="holding_shares_label">Unidades</string>
+    <string name="holding_average_label">Precio promedio de compra (USD, opcional)</string>
+    <string name="holding_notes_label">Notas (opcional)</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_period_title">Periodo de presupuesto</string>
+    <string name="settings_monthly">Mensual (mes calendario)</string>
+    <string name="settings_biweekly">Quincenal (ciclo de 14 días)</string>
+    <string name="settings_payday">Primer día de pago</string>
+    <string name="settings_payday_none">Sin definir</string>
+    <string name="settings_payday_help">Se usa para calcular los periodos quincenales.</string>
+    <string name="settings_rate_title">Tipo de cambio</string>
+    <string name="settings_rate_manual_title">Tasa manual</string>
+    <string name="settings_rate_manual_help">Opcional. Úsala si quieres presupuestar con la tasa de tu banco. Se identifica como manual y nunca como tasa oficial.</string>
+    <string name="settings_rate_manual_value">Colones por dólar</string>
+    <string name="settings_theme_title">Tema</string>
+    <string name="settings_theme_system">Sistema</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_dark">Oscuro</string>
+    <string name="settings_market_title">Datos de mercado</string>
+    <string name="settings_market_key_ok">Clave configurada</string>
+    <string name="settings_market_key_missing">Clave no configurada</string>
+    <string name="settings_data_title">Datos y privacidad</string>
+    <string name="settings_data_note">Tus datos se guardan solo en este dispositivo. No hay servidor, cuenta ni respaldo en la nube.</string>
+    <string name="settings_about_title">Acerca de</string>
+    <string name="settings_background_refresh">Las tasas y los precios se actualizan en segundo plano cada 6 horas cuando hay conexión.</string>
+    <string name="settings_manual_saved">Tasa manual guardada</string>
+    <string name="settings_manual_cleared">Tasa manual eliminada</string>
+    <string name="settings_rate_refresh_done">Tasa actualizada</string>
+    <string name="settings_rate_cache_notice">No se pudo actualizar: se muestra la última tasa guardada.</string>
+    <string name="settings_quotes_refresh_done">Precios actualizados</string>
+    <string name="settings_prepare_rate">Actualizar tasa</string>
+    <string name="settings_prepare_quotes">Actualizar precios</string>
+    <string name="settings_version">Versión %1$s</string>
+    <string name="settings_disclaimer_title">Aviso financiero</string>
+    <string name="settings_disclaimer_body">Esta app es para presupuesto personal e información general. No ofrece asesoría financiera, de inversión, fiscal ni legal.</string>
+
+    <!-- Errors -->
+    <string name="error_missing_api_key">Falta la clave de la API de datos de mercado.</string>
+    <string name="error_network">No hay conexión o el servicio no responde.</string>
+    <string name="error_timeout">El servicio tardó demasiado en responder.</string>
+    <string name="error_rate_limited">Se alcanzó el límite de solicitudes. Intenta más tarde.</string>
+    <string name="error_quota">Se agotó la cuota de la API.</string>
+    <string name="error_invalid_api_key">La clave de la API no es válida.</string>
+    <string name="error_empty_response">El servicio devolvió una respuesta vacía.</string>
+    <string name="error_malformed_response">El servicio devolvió datos que no se pudieron leer.</string>
+    <string name="error_unsupported_currency">Moneda no soportada.</string>
+    <string name="error_invalid_rate">La tasa debe ser mayor que cero.</string>
+    <string name="error_invalid_amount">El monto debe ser mayor que cero.</string>
+    <string name="error_invalid_income">El ingreso debe ser mayor que cero.</string>
+    <string name="error_invalid_split">Los porcentajes deben sumar 100.</string>
+    <string name="error_invalid_ticker">El ticker %1$s no es válido.</string>
+    <string name="error_unknown_symbol">El proveedor no reconoce ese ticker.</string>
+    <string name="error_unsupported_asset">El proveedor no ofrece ese tipo de activo.</string>
+    <string name="error_missing_payday">Define tu primer día de pago para usar periodos quincenales.</string>
+    <string name="error_no_data">Sin datos.</string>
+    <string name="error_unknown">Ocurrió un error inesperado.</string>
+    <string name="error_invalid_shares">Las unidades deben ser mayores que cero.</string>
+
+    <!-- Default categories -->
+    <string name="category_housing">Alquiler o hipoteca</string>
+    <string name="category_groceries">Supermercado</string>
+    <string name="category_transport">Transporte</string>
+    <string name="category_utilities">Servicios</string>
+    <string name="category_health">Salud</string>
+    <string name="category_dining">Restaurantes</string>
+    <string name="category_entertainment">Ocio</string>
+    <string name="category_shopping">Compras</string>
+    <string name="category_savings">Ahorro</string>
+    <string name="category_investing">Inversión</string>
+    <string name="category_debt">Pago de deudas</string>
+    <string name="category_salary">Salario</string>
+
+    <!-- Misc -->
+</resources>

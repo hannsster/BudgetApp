@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Three ascending bars: an original, abstract budgeting mark. -->
+    <path
+        android:fillColor="#F3F8F6"
+        android:pathData="M36,62 h9 a2,2 0 0 1 2,2 v14 a2,2 0 0 1 -2,2 h-9 a2,2 0 0 1 -2,-2 v-14 a2,2 0 0 1 2,-2 z" />
+    <path
+        android:fillColor="#9BD3C4"
+        android:pathData="M50,50 h9 a2,2 0 0 1 2,2 v26 a2,2 0 0 1 -2,2 h-9 a2,2 0 0 1 -2,-2 v-26 a2,2 0 0 1 2,-2 z" />
+    <path
+        android:fillColor="#F3F8F6"
+        android:pathData="M64,40 h9 a2,2 0 0 1 2,2 v36 a2,2 0 0 1 -2,2 h-9 a2,2 0 0 1 -2,-2 v-36 a2,2 0 0 1 2,-2 z" />
+</vector>

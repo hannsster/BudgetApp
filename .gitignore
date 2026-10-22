@@ -1,0 +1,33 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/**/build/
+.kotlin/
+
+# Local configuration and secrets (never commit)
+local.properties
+secrets.properties
+.env
+.env.*
+*.jks
+*.keystore
+!debug.keystore
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+captures/
+.externalNativeBuild/
+.cxx/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Reports and logs
+*.hprof
+**/build/reports/
+**/build/test-results/

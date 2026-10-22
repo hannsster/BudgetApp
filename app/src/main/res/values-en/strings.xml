@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MiPresupuesto CR</string>
+
+    <!-- Navigation -->
+    <string name="nav_dashboard">Home</string>
+    <string name="nav_budget">Budget</string>
+    <string name="nav_calculator">Calculator</string>
+    <string name="nav_portfolio">Portfolio</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Common actions -->
+    <string name="action_refresh">Refresh</string>
+    <string name="action_save">Save</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_close">Close</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_set_target">Set target</string>
+    <string name="action_clear_manual_rate">Remove manual rate</string>
+    <string name="action_save_manual_rate">Save manual rate</string>
+
+    <string name="cd_refresh">Refresh data</string>
+    <string name="cd_previous_period">Previous period</string>
+    <string name="cd_next_period">Next period</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">Overview</string>
+    <string name="dashboard_period">%1$s – %2$s</string>
+    <string name="dashboard_income">Income this period</string>
+    <string name="dashboard_spent">Spent</string>
+    <string name="dashboard_remaining">Available</string>
+    <string name="dashboard_fx_title">USD/CRC exchange rate</string>
+    <string name="dashboard_portfolio_title">Portfolio</string>
+    <string name="dashboard_categories_title">Category targets</string>
+    <string name="dashboard_empty_title">Start with your first entry</string>
+    <string name="dashboard_empty_body">Record income or an expense to see your budget and category targets for this period.</string>
+    <plurals name="dashboard_unpriced">
+        <item quantity="one">%1$d position without a price</item>
+        <item quantity="other">%1$d positions without a price</item>
+    </plurals>
+    <string name="dashboard_updated">Updated %1$s</string>
+    <string name="dashboard_not_updated">Not updated yet</string>
+    <string name="dashboard_stale">Stale data</string>
+    <string name="dashboard_manual_badge">Manual rate</string>
+    <string name="dashboard_source">Source: %1$s</string>
+    <string name="dashboard_gain">Unrealized gain</string>
+    <string name="dashboard_loss">Unrealized loss</string>
+    <string name="dashboard_usd">USD</string>
+    <string name="dashboard_crc">CRC</string>
+    <string name="dashboard_refresh_running">Refreshing…</string>
+    <string name="dashboard_refresh_done">Data updated</string>
+    <string name="dashboard_refresh_partial">No price for: %1$s</string>
+
+    <!-- Budget -->
+    <string name="budget_title">Budget</string>
+    <string name="budget_income_title">Income</string>
+    <string name="budget_expenses_title">Expenses this period</string>
+    <string name="budget_no_transactions">No entries in this period yet.</string>
+    <string name="budget_target_progress">%1$s of %2$s</string>
+    <string name="budget_no_target">No target</string>
+    <string name="budget_over">%1$s over target</string>
+    <string name="budget_uncategorized">Uncategorized: %1$s</string>
+    <string name="budget_set_target_title">Target for %1$s</string>
+    <string name="budget_target_field">Amount in colones</string>
+    <string name="budget_add_transaction">New entry</string>
+    <string name="budget_add_expense">Record expense</string>
+    <string name="budget_empty_categories">Add categories to set targets.</string>
+    <string name="budget_planned_label">Targets this period</string>
+    <string name="budget_target_dialog_hint">Use Delete to remove the target. Targets apply to every period.</string>
+
+    <!-- Transactions -->
+    <string name="transaction_new_title">New entry</string>
+    <string name="transaction_edit_title">Edit entry</string>
+    <string name="transaction_type_expense">Expense</string>
+    <string name="transaction_type_income">Income</string>
+    <string name="transaction_amount">Amount in colones</string>
+    <string name="transaction_category">Category</string>
+    <string name="transaction_date">Date</string>
+    <string name="transaction_note">Note (optional)</string>
+    <string name="transaction_no_category">No category</string>
+    <string name="transaction_delete_title">Delete this entry?</string>
+    <string name="transaction_delete_body">This cannot be undone.</string>
+
+    <!-- Calculator -->
+    <string name="calculator_title">50/30/20 calculator</string>
+    <string name="calculator_income">Net income per payment</string>
+    <string name="calculator_frequency">Frequency</string>
+    <string name="calculator_monthly">Monthly</string>
+    <string name="calculator_biweekly">Biweekly</string>
+    <string name="calculator_weekly">Weekly</string>
+    <string name="calculator_result">Suggested split</string>
+    <string name="calculator_needs">Needs</string>
+    <string name="calculator_wants">Wants</string>
+    <string name="calculator_savings">Savings and investing</string>
+    <string name="calculator_custom_split">Custom split</string>
+    <string name="calculator_split_hint">The three percentages must add up to 100.</string>
+    <string name="calculator_split_needs">Needs (%)</string>
+    <string name="calculator_split_wants">Wants (%)</string>
+    <string name="calculator_split_savings">Savings (%)</string>
+    <string name="calculator_reset_split">Reset to 50/30/20</string>
+    <string name="calculator_apply_split">Use this split</string>
+    <string name="calculator_split_applied">Split saved</string>
+    <string name="calculator_invalid_split">Percentages must add up to 100.</string>
+    <string name="calculator_note">Biweekly uses 26 payments per year and weekly uses 52.</string>
+    <string name="calculator_total">Total</string>
+    <string name="calculator_monthly_value">Monthly equivalent: %1$s</string>
+
+    <!-- Portfolio -->
+    <string name="portfolio_title">Portfolio</string>
+    <string name="portfolio_total">Total value</string>
+    <string name="portfolio_empty_title">Your portfolio is empty</string>
+    <string name="portfolio_empty_body">Add your ETFs manually with the ticker, the number of units and, optionally, the average purchase price.</string>
+    <string name="portfolio_add_holding">Add ETF</string>
+    <string name="portfolio_missing_key_title">Market data key missing</string>
+    <string name="portfolio_missing_key_body">Add TWELVE_DATA_API_KEY to local.properties and rebuild to refresh prices automatically. Until then you can still record positions without a price.</string>
+    <string name="portfolio_value_usd">Value USD</string>
+    <string name="portfolio_value_crc">Value CRC</string>
+    <string name="portfolio_allocation">Allocation</string>
+    <string name="portfolio_no_price">No price</string>
+    <string name="portfolio_unpriced_banner">No price: %1$s</string>
+    <string name="portfolio_source">Source: %1$s</string>
+    <string name="portfolio_updated">Updated %1$s</string>
+    <string name="portfolio_delete_title">Delete this position?</string>
+    <string name="portfolio_delete_body">%1$s will be removed from the portfolio.</string>
+    <string name="portfolio_units_price">%1$s units × $%2$s</string>
+
+    <!-- Holdings -->
+    <string name="holding_new_title">New position</string>
+    <string name="holding_edit_title">Edit position</string>
+    <string name="holding_ticker_label">ETF ticker</string>
+    <string name="holding_shares_label">Units</string>
+    <string name="holding_average_label">Average purchase price (USD, optional)</string>
+    <string name="holding_notes_label">Notes (optional)</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_period_title">Budget period</string>
+    <string name="settings_monthly">Monthly (calendar month)</string>
+    <string name="settings_biweekly">Biweekly (14-day cycle)</string>
+    <string name="settings_payday">First payday</string>
+    <string name="settings_payday_none">Not set</string>
+    <string name="settings_payday_help">Used to calculate biweekly periods.</string>
+    <string name="settings_rate_title">Exchange rate</string>
+    <string name="settings_rate_manual_title">Manual rate</string>
+    <string name="settings_rate_manual_help">Optional. Use it to budget with your bank\'s rate. It is labelled as manual and never as an official rate.</string>
+    <string name="settings_rate_manual_value">Colones per dollar</string>
+    <string name="settings_theme_title">Theme</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_market_title">Market data</string>
+    <string name="settings_market_key_ok">Key configured</string>
+    <string name="settings_market_key_missing">Key not configured</string>
+    <string name="settings_data_title">Data and privacy</string>
+    <string name="settings_data_note">Your data stays on this device. There is no server, account or cloud backup.</string>
+    <string name="settings_about_title">About</string>
+    <string name="settings_background_refresh">Rates and prices refresh in the background every 6 hours when a connection is available.</string>
+    <string name="settings_manual_saved">Manual rate saved</string>
+    <string name="settings_manual_cleared">Manual rate removed</string>
+    <string name="settings_rate_refresh_done">Rate updated</string>
+    <string name="settings_rate_cache_notice">Could not refresh: showing the last saved rate.</string>
+    <string name="settings_quotes_refresh_done">Prices updated</string>
+    <string name="settings_prepare_rate">Refresh rate</string>
+    <string name="settings_prepare_quotes">Refresh prices</string>
+    <string name="settings_version">Version %1$s</string>
+    <string name="settings_disclaimer_title">Financial notice</string>
+    <string name="settings_disclaimer_body">This app is for personal budgeting and general information only. It does not provide financial, investment, tax or legal advice.</string>
+
+    <!-- Errors -->
+    <string name="error_missing_api_key">The market data API key is missing.</string>
+    <string name="error_network">No connection, or the service is not responding.</string>
+    <string name="error_timeout">The service took too long to respond.</string>
+    <string name="error_rate_limited">The request limit was reached. Try again later.</string>
+    <string name="error_quota">The API quota is exhausted.</string>
+    <string name="error_invalid_api_key">The API key is not valid.</string>
+    <string name="error_empty_response">The service returned an empty response.</string>
+    <string name="error_malformed_response">The service returned data that could not be read.</string>
+    <string name="error_unsupported_currency">Unsupported currency.</string>
+    <string name="error_invalid_rate">The rate must be greater than zero.</string>
+    <string name="error_invalid_amount">The amount must be greater than zero.</string>
+    <string name="error_invalid_income">Income must be greater than zero.</string>
+    <string name="error_invalid_split">Percentages must add up to 100.</string>
+    <string name="error_invalid_ticker">Ticker %1$s is not valid.</string>
+    <string name="error_unknown_symbol">The provider does not recognise that ticker.</string>
+    <string name="error_unsupported_asset">The provider does not offer that asset type.</string>
+    <string name="error_missing_payday">Set your first payday to use biweekly periods.</string>
+    <string name="error_no_data">No data.</string>
+    <string name="error_unknown">An unexpected error occurred.</string>
+    <string name="error_invalid_shares">Units must be greater than zero.</string>
+
+    <!-- Default categories -->
+    <string name="category_housing">Rent or mortgage</string>
+    <string name="category_groceries">Groceries</string>
+    <string name="category_transport">Transport</string>
+    <string name="category_utilities">Utilities</string>
+    <string name="category_health">Health</string>
+    <string name="category_dining">Dining out</string>
+    <string name="category_entertainment">Entertainment</string>
+    <string name="category_shopping">Shopping</string>
+    <string name="category_savings">Savings</string>
+    <string name="category_investing">Investing</string>
+    <string name="category_debt">Debt payments</string>
+    <string name="category_salary">Salary</string>
+
+    <!-- Misc -->
+</resources>
