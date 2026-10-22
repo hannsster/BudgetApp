@@ -14,6 +14,19 @@ USD/CRC rate so both currencies make sense together.
 There is nothing to compile, no SDK to install and no key to paste before budgeting. Android 8.0 or newer is
 required. To update later, install a newer APK over the old one — your data is kept.
 
+## Updating the app
+
+Open **Ajustes → Actualizaciones** and tap **Buscar actualizaciones**. If a newer version exists, download it
+and tap **Instalar actualización**; Android shows its normal confirmation screen and replaces the app, keeping
+your budgets, entries and holdings.
+
+The first time, Android may ask you to allow installing apps from MiPresupuesto CR. Allow it and tap Install
+again.
+
+Android only accepts an update signed with the same key as the installed copy. Builds published by this project
+are signed with its own keystore, so updates work between them. A copy installed from an early debug-signed APK
+must be uninstalled once before switching over.
+
 ## First launch
 
 - The app seeds a set of starter categories (housing, groceries, transport, utilities, health, dining,
@@ -105,6 +118,10 @@ only include priced positions.
   instead of numbers.
 
 ## Themes, language and accessibility
+
+Dark mode is the default: the app is designed around the Catppuccin Mocha palette, with Latte used for light
+mode. Settings switches between system, light and dark. Surfaces follow a Windows 11 style: flat cards with a
+hairline border, sharp controls and no shadows.
 
 - **Settings → Theme:** System, Light or Dark. Android 12+ also uses your wallpaper's dynamic colours.
 - **Language:** follows the device language. Spanish (Costa Rica) is the default; English is included.

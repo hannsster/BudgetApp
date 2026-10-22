@@ -31,3 +31,10 @@ Thumbs.db
 *.hprof
 **/build/reports/
 **/build/test-results/
+
+# Signing material kept out of version control
+*.b64
+release.jks
+
+# Local install artifacts handed to the user
+/dist/

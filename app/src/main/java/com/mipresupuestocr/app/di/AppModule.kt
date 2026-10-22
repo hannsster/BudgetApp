@@ -3,11 +3,13 @@ package com.mipresupuestocr.app.di
 import android.util.Log
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.mipresupuestocr.app.BuildConfig
+import com.mipresupuestocr.app.data.remote.GitHubReleaseService
 import com.mipresupuestocr.app.data.remote.MarketDataConfig
 import com.mipresupuestocr.app.data.remote.OpenErApiExchangeRateProvider
 import com.mipresupuestocr.app.data.remote.OpenErApiService
 import com.mipresupuestocr.app.data.remote.TwelveDataMarketQuoteProvider
 import com.mipresupuestocr.app.data.remote.TwelveDataService
+import com.mipresupuestocr.app.data.remote.UpdateConfig
 import com.mipresupuestocr.app.data.settings.MarketDataKeySource
 import dagger.Module
 import dagger.Provides
@@ -25,6 +27,7 @@ import javax.inject.Singleton
 
 private const val EXCHANGE_RETROFIT = "exchangeRateRetrofit"
 private const val MARKET_RETROFIT = "marketDataRetrofit"
+private const val UPDATE_RETROFIT = "updateRetrofit"
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -84,6 +87,21 @@ object AppModule {
     @Singleton
     fun provideMarketService(@Named(MARKET_RETROFIT) retrofit: Retrofit): TwelveDataService =
         retrofit.create(TwelveDataService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideUpdateConfig(): UpdateConfig = UpdateConfig()
+
+    @Provides
+    @Singleton
+    @Named(UPDATE_RETROFIT)
+    fun provideUpdateRetrofit(json: Json, client: OkHttpClient): Retrofit =
+        retrofit(UpdateConfig.BASE_URL, json, client)
+
+    @Provides
+    @Singleton
+    fun provideGitHubReleaseService(@Named(UPDATE_RETROFIT) retrofit: Retrofit): GitHubReleaseService =
+        retrofit.create(GitHubReleaseService::class.java)
 
     /**
      * The key the user types in Settings wins; a build-time key only preconfigures the app for

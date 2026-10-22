@@ -1,6 +1,7 @@
 package com.mipresupuestocr.app.ui.components
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -42,7 +43,10 @@ fun SectionCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(8.dp),
+        // Fluent cards are flat: a hairline border against the window colour, no shadow.
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
         ),
@@ -164,7 +168,7 @@ fun TargetProgress(
 fun StatusChip(text: String, modifier: Modifier = Modifier, isWarning: Boolean = false) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(50),
+        shape = RoundedCornerShape(4.dp),
         color = if (isWarning) {
             MaterialTheme.colorScheme.errorContainer
         } else {

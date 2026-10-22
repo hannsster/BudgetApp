@@ -65,7 +65,7 @@ class DefaultSettingsRepository @Inject constructor(
         ),
         themeMode = this[Keys.themeMode]
             ?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
-            ?: ThemeMode.SYSTEM,
+            ?: ThemeMode.DARK,
         setupCompleted = this[Keys.setupCompleted] ?: false,
         lastRateRefresh = this[Keys.lastRateRefresh]?.let(Instant::ofEpochMilli),
         lastQuoteRefresh = this[Keys.lastQuoteRefresh]?.let(Instant::ofEpochMilli),

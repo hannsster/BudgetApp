@@ -20,13 +20,19 @@ by the system.
 
 ## Network access
 
-The only permissions requested are `INTERNET` and `ACCESS_NETWORK_STATE`. The app contacts exactly two hosts:
+The permissions requested are `INTERNET`, `ACCESS_NETWORK_STATE` and `REQUEST_INSTALL_PACKAGES` (the last one
+only lets the app hand a downloaded update to Android's installer, which still asks you to confirm). The app
+contacts only these hosts:
 
 1. `https://open.er-api.com` — USD/CRC reference rate (no key, no identifiers sent).
 2. `https://api.twelvedata.com` — ETF quotes (the API key and ticker symbols are sent).
+3. `https://api.github.com` — release check for in-app updates (no account, no key, no device identifier; the
+   request reveals your IP address to GitHub, as any download would). The APK itself is downloaded from
+   `github.com`.
 
-No personal or financial data is sent to either provider: requests contain only the base currency, the ticker
-symbols you hold, and the API key. There is no telemetry endpoint, crash reporter or ad SDK.
+No personal or financial data is sent to any of them: requests contain only the base currency, the ticker
+symbols you hold, the API key you entered, and the version check that carries nothing but the URL. There is no
+telemetry endpoint, crash reporter or ad SDK.
 
 ## API keys
 

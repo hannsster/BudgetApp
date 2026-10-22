@@ -33,11 +33,20 @@ val releaseKeyStorePath = buildSecret("RELEASE_KEYSTORE_PATH")
 val releaseKeyStorePassword = buildSecret("RELEASE_KEYSTORE_PASSWORD")
 val releaseKeyAlias = buildSecret("RELEASE_KEY_ALIAS")
 val releaseKeyPassword = buildSecret("RELEASE_KEY_PASSWORD")
-val hasReleaseKeystore = releaseKeyStorePath.isNotBlank() &&
+val releaseSigningRequested = releaseKeyStorePath.isNotBlank() &&
     releaseKeyStorePassword.isNotBlank() &&
     releaseKeyAlias.isNotBlank() &&
-    releaseKeyPassword.isNotBlank() &&
-    file(releaseKeyStorePath).exists()
+    releaseKeyPassword.isNotBlank()
+val releaseKeystoreFile = releaseKeyStorePath.takeIf { it.isNotBlank() }?.let { file(it) }
+val hasReleaseKeystore = releaseSigningRequested && releaseKeystoreFile?.exists() == true
+
+// Shipping a debug-signed APK by accident is how update-in-place breaks, so a half-configured
+// keystore is a hard failure instead of a silent fallback.
+if (releaseSigningRequested && !hasReleaseKeystore) {
+    throw GradleException(
+        "RELEASE_KEYSTORE_PATH points at a keystore that does not exist: $releaseKeyStorePath",
+    )
+}
 
 android {
     namespace = "com.mipresupuestocr.app"
@@ -48,8 +57,8 @@ android {
         minSdk = 26
         targetSdk = 35
         // Overridable from the release workflow: -PappVersionName=1.2.0 -PappVersionCode=42
-        versionCode = (project.findProperty("appVersionCode") as String?)?.toIntOrNull() ?: 3
-        versionName = (project.findProperty("appVersionName") as String?) ?: "1.2.0"
+        versionCode = (project.findProperty("appVersionCode") as String?)?.toIntOrNull() ?: 4
+        versionName = (project.findProperty("appVersionName") as String?) ?: "1.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

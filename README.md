@@ -10,7 +10,9 @@ change the code.
 - **Base currency:** CRC (₡). **Secondary display currency:** USD.
 - **Storage:** on-device only (Room + DataStore). No account, no backend, no cloud backup.
 - **Languages:** Costa Rican Spanish (default) and English.
-- **Design:** original Material 3 interface. No third-party branding, icons or layouts are reused.
+- **Design:** Windows 11 surface language (flat bordered cards, 8 dp corners, sharp controls) on Catppuccin
+  colours, with Mocha as the default dark theme and Latte for light. No third-party branding or assets are
+  reused.
 
 ## Install the app
 
@@ -28,6 +30,19 @@ Each release also publishes a `.sha256` file next to the APK. To check a downloa
 ```bash
 sha256sum -c MiPresupuestoCR-<version>.apk.sha256
 ```
+
+### Updating without losing anything
+
+Open **Ajustes → Actualizaciones** (Settings → Updates) and tap **Buscar actualizaciones**. When a newer
+release exists the app downloads its APK and hands it to Android's installer; the install replaces the app in
+place, so budgets, entries and holdings stay exactly as they were.
+
+Two conditions apply, both enforced by Android rather than by the app:
+
+- The update must be signed with the same key as the installed copy. Releases built by the workflow below are
+  signed with the project's own keystore; a build made without it is debug-signed and cannot update it.
+- The first install of a differently-signed build (for example switching from an early debug-signed APK) still
+  needs an uninstall, which erases app data. From then on, updates are in-place.
 
 ### Optional: turn on automatic ETF prices
 
@@ -66,6 +81,8 @@ without a purchase price; prices simply stay blank and are labelled as such.
   clearly labelled manual override.
 - **Correct a balance without fake entries** — set the available, income, spending or a category's total to the
   right number; the difference is kept as a period correction, marked as adjusted, and removable again.
+- **In-app updates** — the app checks its own GitHub Releases feed, downloads the APK and passes it to
+  Android's installer, so an update never touches your data.
 - **Background refresh** — WorkManager refreshes rates and quotes every six hours when a connection exists.
 - **Privacy-first defaults** — app data is excluded from backup; no analytics, tracking or ads.
 
@@ -83,9 +100,13 @@ The workflow runs the unit tests, builds `assembleRelease` with the tag as `vers
 as a workflow artifact, and attaches it to a GitHub Release. Tags are the only way a release is published; the
 regular [CI workflow](.github/workflows/android.yml) still tests every push and pull request.
 
-Signing is optional but recommended. Without a keystore the release APK is debug-signed: it installs, but a
-later build signed on a different machine is treated by Android as a different app and will not update in
-place. For stable updates, create one keystore and add four repository secrets:
+Releases are signed with the project's own keystore, which lives outside version control (`release.jks` plus
+its four `RELEASE_*` entries in `local.properties`). Lose it and future releases can no longer update installed
+copies, so keep a backup of the keystore **and** its password. Without any keystore the build still produces an
+installable APK, but debug-signed: a later build from another machine is a different app to Android and will
+not update in place. A half-configured keystore path fails the build instead of silently falling back.
+
+For CI, add four repository secrets:
 
 | Secret | Value |
 | --- | --- |
@@ -144,6 +165,7 @@ scripts/                     Repository bootstrap helpers
 | --- | --- | --- | --- |
 | USD/CRC reference rate | `open.er-api.com` (ExchangeRate-API open access) | none | Daily update, attribution required, hourly-friendly |
 | ETF quotes | Twelve Data | entered in Settings | Free plan: 8 credits/minute, 800/day; ETF coverage explicitly included |
+| App updates | GitHub Releases API (`api.github.com`) | none | Public read-only check, 60 requests/hour per IP |
 
 Both sit behind interfaces (`ExchangeRateProvider`, `MarketQuoteProvider`), so another provider can be added
 without touching the UI or repositories. Details and error handling: [docs/API_SETUP.md](docs/API_SETUP.md).

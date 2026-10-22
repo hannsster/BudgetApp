@@ -6,6 +6,27 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-22
+
+### Added
+
+- In-app updates: **Settings → Updates** checks the project's GitHub Releases feed, downloads the APK and
+  hands it to Android's installer. Data is preserved because the app is replaced, not reinstalled.
+- `AppVersion` parsing and comparison, a GitHub release client, a downloader with progress, a FileProvider for
+  the downloaded APK and the `REQUEST_INSTALL_PACKAGES` permission.
+- A permanent release keystore (`release.jks`, git-ignored) so builds from this machine can update installs;
+  a CI keystore is supplied through the four `RELEASE_*` secrets.
+
+### Changed
+
+- New visual language: Windows 11-style flat surfaces — cards on the lighter base layer with hairline borders
+  and 8 dp corners, 4 dp controls, flat app bars — over Catppuccin palettes (Mocha dark, Latte light).
+- Dark is now the default theme; dynamic colour is off by default so the palette is not replaced by the
+  wallpaper one.
+- Release signing fails loudly when a keystore is configured but missing, instead of silently shipping a
+  debug-signed APK.
+- Version bumped to 1.3.0 (versionCode 4).
+
 ## [1.2.0] - 2026-10-22
 
 ### Added

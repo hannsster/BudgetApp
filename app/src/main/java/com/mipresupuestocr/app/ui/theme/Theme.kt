@@ -2,7 +2,9 @@ package com.mipresupuestocr.app.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -13,23 +15,57 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.mipresupuestocr.domain.model.ThemeMode
 
-val LocalPositiveColor = staticCompositionLocalOf { PositiveLight }
+val LocalPositiveColor = staticCompositionLocalOf { PositiveDark }
+
+/**
+ * Windows 11 surface language: windows and bars sit on the darker mantle layer, cards on the lighter
+ * base layer, and controls are close to square (4 dp) while cards use an 8 dp corner.
+ */
+val FluentShapes = Shapes(
+    extraSmall = RoundedCornerShape(2.dp),
+    small = RoundedCornerShape(4.dp),
+    medium = RoundedCornerShape(4.dp),
+    large = RoundedCornerShape(8.dp),
+    extraLarge = RoundedCornerShape(12.dp),
+)
+
+/** Slightly tighter, heavier headings than the Material defaults, closer to Fluent's type ramp. */
+private val FluentTypography = Typography().let { base ->
+    base.copy(
+        displaySmall = base.displaySmall.copy(fontWeight = FontWeight.SemiBold, letterSpacing = (-0.5).sp),
+        headlineSmall = base.headlineSmall.copy(fontWeight = FontWeight.SemiBold),
+        titleLarge = base.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+        titleMedium = base.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+        titleSmall = base.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+        labelLarge = base.labelLarge.copy(fontWeight = FontWeight.Medium),
+        bodyLarge = TextStyle(
+            fontWeight = FontWeight.Normal,
+            fontSize = 15.sp,
+            lineHeight = 22.sp,
+            letterSpacing = 0.15.sp,
+        ),
+    )
+}
 
 private val LightScheme = lightColorScheme(
-    primary = TealPrimary,
-    onPrimary = TealOnPrimary,
-    primaryContainer = TealPrimaryContainer,
-    onPrimaryContainer = TealOnPrimaryContainer,
-    secondary = SandSecondary,
-    onSecondary = SandOnSecondary,
-    secondaryContainer = SandSecondaryContainer,
-    onSecondaryContainer = SandOnSecondaryContainer,
-    tertiary = GoldTertiary,
-    onTertiary = GoldOnTertiary,
-    tertiaryContainer = GoldTertiaryContainer,
-    onTertiaryContainer = GoldOnTertiaryContainer,
+    primary = LightPrimary,
+    onPrimary = LightOnPrimary,
+    primaryContainer = LightPrimaryContainer,
+    onPrimaryContainer = LightOnPrimaryContainer,
+    secondary = LightSecondary,
+    onSecondary = LightOnSecondary,
+    secondaryContainer = LightSecondaryContainer,
+    onSecondaryContainer = LightOnSecondaryContainer,
+    tertiary = LightTertiary,
+    onTertiary = LightOnTertiary,
+    tertiaryContainer = LightTertiaryContainer,
+    onTertiaryContainer = LightOnTertiaryContainer,
     error = ErrorLight,
     background = LightBackground,
     onBackground = LightOnSurface,
@@ -37,7 +73,13 @@ private val LightScheme = lightColorScheme(
     onSurface = LightOnSurface,
     surfaceVariant = LightSurfaceVariant,
     onSurfaceVariant = LightOnSurfaceVariant,
+    surfaceContainerLowest = LightSurfaceContainerLow,
+    surfaceContainerLow = LightSurfaceContainerLow,
+    surfaceContainer = LightBackground,
+    surfaceContainerHigh = LightSurfaceContainerHigh,
+    surfaceContainerHighest = LightSurfaceContainerHighest,
     outline = LightOutline,
+    outlineVariant = LightOutlineVariant,
 )
 
 private val DarkScheme = darkColorScheme(
@@ -60,13 +102,23 @@ private val DarkScheme = darkColorScheme(
     onSurface = DarkOnSurface,
     surfaceVariant = DarkSurfaceVariant,
     onSurfaceVariant = DarkOnSurfaceVariant,
+    surfaceContainerLowest = DarkSurfaceContainerHigh,
+    surfaceContainerLow = DarkSurfaceContainerLow,
+    surfaceContainer = DarkBackground,
+    surfaceContainerHigh = DarkSurfaceContainerHigh,
+    surfaceContainerHighest = DarkSurfaceContainerHighest,
     outline = DarkOutline,
+    outlineVariant = DarkOutlineVariant,
 )
 
+/**
+ * [dynamicColor] stays off by default: Android's wallpaper palette would replace the Catppuccin
+ * colours this app is built around.
+ */
 @Composable
 fun MiPresupuestoTheme(
-    themeMode: ThemeMode = ThemeMode.SYSTEM,
-    dynamicColor: Boolean = true,
+    themeMode: ThemeMode = ThemeMode.DARK,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val darkTheme = when (themeMode) {
@@ -89,7 +141,8 @@ fun MiPresupuestoTheme(
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = Typography(),
+            typography = FluentTypography,
+            shapes = FluentShapes,
             content = content,
         )
     }

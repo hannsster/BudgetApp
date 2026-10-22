@@ -15,7 +15,8 @@ data class UserSettings(
     /** First known payday; anchors the 14-day biweekly cycle. */
     val paydayAnchor: LocalDate? = null,
     val split: BudgetSplit = BudgetSplit.FIFTY_THIRTY_TWENTY,
-    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    /** Dark is the default: the app is designed around the Catppuccin Mocha palette. */
+    val themeMode: ThemeMode = ThemeMode.DARK,
     /** True once the localized default categories have been inserted. */
     val setupCompleted: Boolean = false,
     val lastRateRefresh: Instant? = null,

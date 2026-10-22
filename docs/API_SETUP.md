@@ -72,6 +72,24 @@ personal-use credential.
 - An empty portfolio makes **no** network call.
 - Non-USD instruments are rejected with `UnsupportedAsset` rather than converted without a rate.
 
+## 3. App updates — GitHub Releases API
+
+| Item | Value |
+| --- | --- |
+| Provider | GitHub REST API |
+| Endpoint used | `GET https://api.github.com/repos/hannsster/BudgetApp/releases/latest` |
+| API key | **Not required** (unauthenticated, 60 requests/hour per IP) |
+| Download | the release asset named `*.apk`, via its `browser_download_url` |
+| Data | `tag_name`, `assets[].name`, `assets[].browser_download_url`, `assets[].size`, `html_url` |
+
+The check compares `tag_name` with `BuildConfig.VERSION_NAME` numerically (`AppVersion`), ignores drafts and
+prereleases, and only offers a release that actually carries an APK asset. The download streams into
+`cacheDir/updates/`; a partial file is deleted on failure so it can never be installed.
+
+Installing goes through `FileProvider` + `ACTION_VIEW` with the package-archive MIME type. Android requires the
+new APK to be signed with the same key as the installed app, so builds published from this repository are signed
+with its own keystore (see the README's release section). To point the app at a fork, change `UpdateConfig`.
+
 ## Error handling matrix
 
 | Situation | Detection | `AppError` | UI behaviour |

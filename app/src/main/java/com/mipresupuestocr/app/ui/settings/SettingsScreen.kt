@@ -14,6 +14,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -29,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,6 +47,12 @@ import com.mipresupuestocr.app.ui.components.ErrorBanner
 import com.mipresupuestocr.app.ui.components.KeyValueRow
 import com.mipresupuestocr.app.ui.components.SectionCard
 import com.mipresupuestocr.app.ui.components.StatusChip
+import com.mipresupuestocr.app.ui.update.InstallOutcome
+import com.mipresupuestocr.app.ui.update.UpdatePhase
+import com.mipresupuestocr.app.ui.update.UpdateUiState
+import com.mipresupuestocr.app.ui.update.UpdateViewModel
+import com.mipresupuestocr.app.ui.update.installApk
+import com.mipresupuestocr.app.ui.update.openUrl
 import com.mipresupuestocr.app.ui.util.MoneyFormat
 import com.mipresupuestocr.domain.model.ExchangeRate
 import com.mipresupuestocr.domain.model.PeriodType
@@ -53,15 +61,22 @@ import com.mipresupuestocr.domain.model.UserSettings
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneOffset
+import java.util.Locale
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
+    updateViewModel: UpdateViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val updateState by updateViewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) { updateViewModel.check() }
     var showDatePicker by remember { mutableStateOf(false) }
     var manualRateText by remember { mutableStateOf("") }
     var marketKeyText by remember { mutableStateOf("") }
@@ -189,6 +204,38 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+            }
+
+            item {
+                UpdateSection(
+                    state = updateState,
+                    onCheck = updateViewModel::check,
+                    onDownload = updateViewModel::download,
+                    onDismissError = updateViewModel::dismissError,
+                    onOpenRelease = { url -> openUrl(context, url) },
+                    onInstall = { path ->
+                        when (installApk(context, path)) {
+                            InstallOutcome.LAUNCHED -> Unit
+                            InstallOutcome.NEEDS_PERMISSION -> scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    context.getString(R.string.settings_updates_permission),
+                                )
+                            }
+
+                            InstallOutcome.MISSING_FILE -> scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    context.getString(R.string.settings_updates_missing),
+                                )
+                            }
+
+                            InstallOutcome.UNAVAILABLE -> scope.launch {
+                                snackbarHostState.showSnackbar(
+                                    context.getString(R.string.settings_updates_unavailable),
+                                )
+                            }
+                        }
+                    },
+                )
             }
 
             item {
@@ -445,3 +492,106 @@ private fun RateSection(
         )
     }
 }
+
+@Composable
+private fun UpdateSection(
+    state: UpdateUiState,
+    onCheck: () -> Unit,
+    onDownload: () -> Unit,
+    onDismissError: () -> Unit,
+    onOpenRelease: (String) -> Unit,
+    onInstall: (String) -> Unit,
+) {
+    SectionCard {
+        CardTitle(stringResource(R.string.settings_updates_title))
+        KeyValueRow(
+            label = stringResource(R.string.settings_updates_current),
+            value = state.currentVersion,
+        )
+
+        state.error?.let { error -> ErrorBanner(error = error, onRetry = onDismissError) }
+
+        when (state.phase) {
+            UpdatePhase.IDLE -> Text(
+                text = stringResource(R.string.settings_updates_idle),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            UpdatePhase.CHECKING -> Text(
+                text = stringResource(R.string.settings_updates_checking),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+
+            UpdatePhase.UP_TO_DATE -> Text(
+                text = stringResource(R.string.settings_updates_up_to_date),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
+
+            UpdatePhase.AVAILABLE -> {
+                Text(
+                    text = stringResource(
+                        R.string.settings_updates_available,
+                        state.update?.version.orEmpty(),
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = onDownload) {
+                        Text(stringResource(R.string.settings_updates_download))
+                    }
+                    val releaseUrl = state.update?.releaseUrl.orEmpty()
+                    if (releaseUrl.isNotBlank()) {
+                        TextButton(onClick = { onOpenRelease(releaseUrl) }) {
+                            Text(stringResource(R.string.settings_updates_notes))
+                        }
+                    }
+                }
+            }
+
+            UpdatePhase.DOWNLOADING -> {
+                Text(
+                    text = stringResource(
+                        R.string.settings_updates_downloading,
+                        formatMegabytes(state.bytesRead),
+                        formatMegabytes(state.totalBytes),
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                LinearProgressIndicator(
+                    progress = { state.progress },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
+            UpdatePhase.READY -> {
+                Text(
+                    text = stringResource(R.string.settings_updates_ready),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Button(onClick = { onInstall(state.apkPath.orEmpty()) }) {
+                    Text(stringResource(R.string.settings_updates_install))
+                }
+            }
+        }
+
+        TextButton(
+            onClick = onCheck,
+            enabled = state.phase != UpdatePhase.CHECKING && state.phase != UpdatePhase.DOWNLOADING,
+        ) {
+            Text(stringResource(R.string.settings_updates_check))
+        }
+
+        Text(
+            text = stringResource(R.string.settings_updates_signature),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+private fun formatMegabytes(bytes: Long): String =
+    String.format(Locale.US, "%.1f MB", bytes / 1_048_576.0)
