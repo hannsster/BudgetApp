@@ -1,11 +1,14 @@
 package com.mipresupuestocr.app.di
 
+import com.mipresupuestocr.domain.repository.AccountRepository
 import com.mipresupuestocr.domain.repository.BalanceCorrectionRepository
 import com.mipresupuestocr.domain.repository.HoldingRepository
 import com.mipresupuestocr.domain.repository.QuoteRepository
 import com.mipresupuestocr.domain.repository.RateRepository
 import com.mipresupuestocr.domain.repository.TransactionRepository
 import com.mipresupuestocr.domain.usecase.BudgetPeriodResolver
+import com.mipresupuestocr.domain.usecase.CalculateAccountBalancesUseCase
+import com.mipresupuestocr.domain.usecase.DeleteAccountUseCase
 import com.mipresupuestocr.domain.usecase.BudgetProgressCalculator
 import com.mipresupuestocr.domain.usecase.BuildDashboardUseCase
 import com.mipresupuestocr.domain.usecase.ClearBalanceCorrectionUseCase
@@ -14,6 +17,7 @@ import com.mipresupuestocr.domain.usecase.DeleteHoldingUseCase
 import com.mipresupuestocr.domain.usecase.DeleteTransactionUseCase
 import com.mipresupuestocr.domain.usecase.RefreshExchangeRateUseCase
 import com.mipresupuestocr.domain.usecase.RefreshQuotesUseCase
+import com.mipresupuestocr.domain.usecase.SaveAccountUseCase
 import com.mipresupuestocr.domain.usecase.SaveTransactionUseCase
 import com.mipresupuestocr.domain.usecase.SetAvailableBalanceUseCase
 import com.mipresupuestocr.domain.usecase.SetCategoryBalanceUseCase
@@ -53,6 +57,18 @@ object UseCaseModule {
     @Provides
     fun provideDeleteTransactionUseCase(repository: TransactionRepository): DeleteTransactionUseCase =
         DeleteTransactionUseCase(repository)
+
+    @Provides
+    fun provideSaveAccountUseCase(repository: AccountRepository): SaveAccountUseCase =
+        SaveAccountUseCase(repository)
+
+    @Provides
+    fun provideDeleteAccountUseCase(repository: AccountRepository): DeleteAccountUseCase =
+        DeleteAccountUseCase(repository)
+
+    @Provides
+    fun provideCalculateAccountBalancesUseCase(): CalculateAccountBalancesUseCase =
+        CalculateAccountBalancesUseCase()
 
     @Provides
     fun provideUpsertHoldingUseCase(repository: HoldingRepository): UpsertHoldingUseCase =

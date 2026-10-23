@@ -3,6 +3,8 @@ package com.mipresupuestocr.app.ui.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mipresupuestocr.app.ui.util.parseAmount
+import com.mipresupuestocr.domain.model.Account
+import com.mipresupuestocr.domain.model.AccountBalance
 import com.mipresupuestocr.domain.model.AppError
 import com.mipresupuestocr.domain.model.AppResult
 import com.mipresupuestocr.domain.model.BalanceCorrection
@@ -17,6 +19,7 @@ import com.mipresupuestocr.domain.model.Money
 import com.mipresupuestocr.domain.model.Quote
 import com.mipresupuestocr.domain.model.Transaction
 import com.mipresupuestocr.domain.model.UserSettings
+import com.mipresupuestocr.domain.repository.AccountRepository
 import com.mipresupuestocr.domain.repository.BalanceCorrectionRepository
 import com.mipresupuestocr.domain.repository.CategoryRepository
 import com.mipresupuestocr.domain.repository.HoldingRepository
@@ -26,6 +29,7 @@ import com.mipresupuestocr.domain.repository.SettingsRepository
 import com.mipresupuestocr.domain.repository.TransactionRepository
 import com.mipresupuestocr.domain.usecase.BudgetPeriodResolver
 import com.mipresupuestocr.domain.usecase.BuildDashboardUseCase
+import com.mipresupuestocr.domain.usecase.CalculateAccountBalancesUseCase
 import com.mipresupuestocr.domain.usecase.ClearBalanceCorrectionUseCase
 import com.mipresupuestocr.domain.usecase.RefreshExchangeRateUseCase
 import com.mipresupuestocr.domain.usecase.RefreshQuotesUseCase
@@ -52,6 +56,7 @@ data class DashboardUiState(
     val error: AppError? = null,
     val message: DashboardMessage? = null,
     val usingCachedRate: Boolean = false,
+    val accounts: List<AccountBalance> = emptyList(),
 )
 
 sealed interface DashboardMessage {
@@ -65,6 +70,7 @@ sealed interface DashboardMessage {
 class DashboardViewModel @Inject constructor(
     transactionRepository: TransactionRepository,
     categoryRepository: CategoryRepository,
+    accountRepository: AccountRepository,
     holdingRepository: HoldingRepository,
     rateRepository: RateRepository,
     quoteRepository: QuoteRepository,
@@ -77,6 +83,7 @@ class DashboardViewModel @Inject constructor(
     private val setSpent: SetSpentBalanceUseCase,
     private val setAvailable: SetAvailableBalanceUseCase,
     private val clearCorrection: ClearBalanceCorrectionUseCase,
+    private val calculateAccountBalances: CalculateAccountBalancesUseCase,
     private val periodResolver: BudgetPeriodResolver,
     private val clock: Clock,
 ) : ViewModel() {
@@ -88,6 +95,7 @@ class DashboardViewModel @Inject constructor(
         val holdings: List<Holding>,
         val quotes: Map<String, Quote>,
         val corrections: List<BalanceCorrection>,
+        val accounts: List<Account>,
     )
 
     private data class Resolved(
@@ -95,6 +103,7 @@ class DashboardViewModel @Inject constructor(
         val error: AppError?,
         val period: BudgetPeriod?,
         val usedCache: Boolean = false,
+        val accounts: List<AccountBalance> = emptyList(),
     )
 
     private val selectedPeriod = MutableStateFlow<BudgetPeriod?>(null)
@@ -109,12 +118,25 @@ class DashboardViewModel @Inject constructor(
             transactionRepository.observeAll(),
             categoryRepository.observeAll(),
             holdingRepository.observeAll(),
-            quoteRepository.observeQuotes(),
-        ) { settings, transactions, categories, holdings, quotes ->
-            Bundle(settings, transactions, categories, holdings, quotes, emptyList())
+        ) { settings, transactions, categories, holdings ->
+            Bundle(
+                settings = settings,
+                transactions = transactions,
+                categories = categories,
+                holdings = holdings,
+                quotes = emptyMap(),
+                corrections = emptyList(),
+                accounts = emptyList(),
+            )
         },
+        combine(
+            quoteRepository.observeQuotes(),
+            accountRepository.observeAll(),
+        ) { quotes, accounts -> quotes to accounts },
         correctionRepository.observeAll(),
-    ) { bundle, corrections -> bundle.copy(corrections = corrections) }
+    ) { bundle, (quotes, accounts), corrections ->
+        bundle.copy(quotes = quotes, accounts = accounts, corrections = corrections)
+    }
 
     private val withRate: Flow<Pair<Bundle, ExchangeRate?>> =
         combine(bundles, rateRepository.observeActiveRate()) { bundle, rate -> bundle to rate }
@@ -124,6 +146,8 @@ class DashboardViewModel @Inject constructor(
             ?.takeIf { it.type == bundle.settings.periodType }
             ?: periodResolver.resolve(bundle.settings, LocalDate.now(clock)).getOrNull()
             ?: return@combine Resolved(null, AppError.MissingPaydayAnchor, null)
+
+        val balances = calculateAccountBalances(bundle.accounts, bundle.transactions)
 
         when (
             val result = buildDashboard.build(
@@ -138,8 +162,9 @@ class DashboardViewModel @Inject constructor(
                 corrections = bundle.corrections,
             )
         ) {
-            is AppResult.Success -> Resolved(result.value, null, effectivePeriod)
-            is AppResult.Failure -> Resolved(null, result.error, effectivePeriod)
+            is AppResult.Success -> Resolved(result.value, null, effectivePeriod, accounts = balances)
+            is AppResult.Failure ->
+                Resolved(null, result.error, effectivePeriod, accounts = balances)
         }
     }
 
@@ -158,6 +183,7 @@ class DashboardViewModel @Inject constructor(
             error = currentError ?: resolvedState.error,
             message = currentMessage,
             usingCachedRate = cached,
+            accounts = resolvedState.accounts,
         )
     }.stateIn(
         scope = viewModelScope,

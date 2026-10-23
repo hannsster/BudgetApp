@@ -287,6 +287,7 @@ fun errorRes(error: AppError): Int = when (error) {
     AppError.InvalidIncome -> R.string.error_invalid_income
     AppError.InvalidSplit -> R.string.error_invalid_split
     AppError.InvalidShares -> R.string.error_invalid_shares
+    AppError.InvalidAccountName -> R.string.error_invalid_account_name
     is AppError.InvalidTicker -> R.string.error_invalid_ticker
     AppError.UnknownSymbol -> R.string.error_unknown_symbol
     AppError.UnsupportedAsset -> R.string.error_unsupported_asset

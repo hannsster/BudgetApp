@@ -3,6 +3,9 @@ package com.mipresupuestocr.app.data.local
 import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import com.mipresupuestocr.app.data.repository.DefaultAccountRepository
+import com.mipresupuestocr.domain.model.Account
+import com.mipresupuestocr.domain.model.AccountType
 import com.mipresupuestocr.domain.model.Category
 import com.mipresupuestocr.domain.model.CategoryBucket
 import com.mipresupuestocr.domain.model.CurrencyCode
@@ -95,6 +98,50 @@ class AppDatabaseTest {
         ).first().map { it.dateEpochDay }
 
         assertEquals(listOf(LocalDate.of(2026, 10, 31), LocalDate.of(2026, 10, 1)).map { it.toEpochDay() }, rows)
+    }
+
+    @Test
+    fun `accounts round trip with their type and opening balance`() = runTest {
+        val dao = database.accountDao()
+        val account = Account(
+            name = "Ahorros",
+            type = AccountType.SAVINGS,
+            openingBalance = Money.ofMajor("750000.50", CurrencyCode.CRC),
+            sortOrder = 1,
+        )
+
+        val id = dao.upsert(account.toEntity())
+
+        val stored = dao.getAll().single()
+        assertEquals(id, stored.id)
+        assertEquals(AccountType.SAVINGS, stored.toDomain().type)
+        assertEquals(
+            Money.ofMajor("750000.50", CurrencyCode.CRC),
+            stored.toDomain().openingBalance,
+        )
+    }
+
+    @Test
+    fun `deleting an account keeps its entries and only detaches them`() = runTest {
+        val accountDao = database.accountDao()
+        val accountId = accountDao.upsert(Account(name = "Corriente").toEntity())
+        val transactionDao = database.transactionDao()
+        val entryId = transactionDao.upsert(
+            Transaction(
+                type = TransactionType.EXPENSE,
+                amount = Money.ofMajor("12000", CurrencyCode.CRC),
+                date = LocalDate.of(2026, 10, 6),
+                accountId = accountId,
+            ).toEntity(),
+        )
+        assertEquals(accountId, transactionDao.getById(entryId)!!.accountId)
+
+        DefaultAccountRepository(database).delete(accountId)
+
+        assertTrue(accountDao.getAll().isEmpty())
+        val entry = transactionDao.getById(entryId)
+        assertEquals("the entry itself is kept", 1, transactionDao.getBetween(0L, Long.MAX_VALUE).size)
+        assertNull("the entry loses the account link", entry!!.accountId)
     }
 
     @Test

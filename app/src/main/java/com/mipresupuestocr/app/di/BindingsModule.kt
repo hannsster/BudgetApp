@@ -4,6 +4,7 @@ import com.mipresupuestocr.app.data.local.RoomQuoteCache
 import com.mipresupuestocr.app.data.local.RoomRateCache
 import com.mipresupuestocr.app.data.remote.OpenErApiExchangeRateProvider
 import com.mipresupuestocr.app.data.remote.TwelveDataMarketQuoteProvider
+import com.mipresupuestocr.app.data.repository.DefaultAccountRepository
 import com.mipresupuestocr.app.data.repository.DefaultBalanceCorrectionRepository
 import com.mipresupuestocr.app.data.repository.DefaultCategoryRepository
 import com.mipresupuestocr.app.data.repository.DefaultHoldingRepository
@@ -15,6 +16,7 @@ import com.mipresupuestocr.app.data.settings.DefaultSettingsRepository
 import com.mipresupuestocr.app.data.settings.MarketDataKeySource
 import com.mipresupuestocr.domain.provider.ExchangeRateProvider
 import com.mipresupuestocr.domain.provider.MarketQuoteProvider
+import com.mipresupuestocr.domain.repository.AccountRepository
 import com.mipresupuestocr.domain.repository.BalanceCorrectionRepository
 import com.mipresupuestocr.domain.repository.CategoryRepository
 import com.mipresupuestocr.domain.repository.HoldingRepository
@@ -41,6 +43,10 @@ abstract class BindingsModule {
     @Binds
     @Singleton
     abstract fun bindCategoryRepository(impl: DefaultCategoryRepository): CategoryRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAccountRepository(impl: DefaultAccountRepository): AccountRepository
 
     @Binds
     @Singleton

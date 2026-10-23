@@ -51,7 +51,7 @@ class DatabaseMigrationTest {
         legacy.close()
 
         val database = Room.databaseBuilder(context, AppDatabase::class.java, name)
-            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
             .allowMainThreadQueries()
             .build()
 
@@ -81,6 +81,54 @@ class DatabaseMigrationTest {
         }
     }
 
+    @Test
+    fun `migrating from version 2 adds accounts without touching entries`() {
+        context.deleteDatabase(name)
+        val file = context.getDatabasePath(name)
+        file.parentFile?.mkdirs()
+
+        val legacy = SQLiteDatabase.openOrCreateDatabase(file, null)
+        VERSION_2_SCHEMA.forEach(legacy::execSQL)
+        legacy.version = 2
+        legacy.execSQL(
+            "INSERT INTO `transactions` " +
+                "(id, type, amountMinor, currency, categoryId, dateEpochDay, note, createdAtMillis) " +
+                "VALUES (7, 'EXPENSE', 2500000, 'CRC', NULL, ${LocalDate.of(2026, 10, 8).toEpochDay()}, 'Bus', 0)",
+        )
+        legacy.close()
+
+        val database = Room.databaseBuilder(context, AppDatabase::class.java, name)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+            .allowMainThreadQueries()
+            .build()
+
+        try {
+            runBlocking {
+                val entries = database.transactionDao().getBetween(0L, Long.MAX_VALUE)
+                assertEquals(1, entries.size)
+                assertEquals(2_500_000L, entries.single().amountMinor)
+                // Entries that predate accounts simply start out unassigned.
+                assertEquals(null, entries.single().accountId)
+
+                val accountId = database.accountDao().upsert(
+                    AccountEntity(
+                        name = "Ahorros",
+                        type = "SAVINGS",
+                        openingBalanceMinor = 500_000_00L,
+                        currency = "CRC",
+                        sortOrder = 0,
+                    ),
+                )
+                assertEquals("Ahorros", database.accountDao().getAll().single().name)
+
+                database.transactionDao().upsert(entries.single().copy(accountId = accountId))
+                assertEquals(accountId, database.transactionDao().getById(7L)!!.accountId)
+            }
+        } finally {
+            database.close()
+        }
+    }
+
     private companion object {
         /** Exactly what Room created at version 1 (see app/schemas/.../1.json). */
         val VERSION_1_SCHEMA = listOf(
@@ -104,6 +152,16 @@ class DatabaseMigrationTest {
             "CREATE TABLE IF NOT EXISTS `quote_cache` (`ticker` TEXT NOT NULL, " +
                 "`priceUsd` TEXT NOT NULL, `asOfMillis` INTEGER NOT NULL, `source` TEXT NOT NULL, " +
                 "PRIMARY KEY(`ticker`))",
+        )
+
+        /** Version 1 plus the hand corrections table (see app/schemas/.../2.json). */
+        val VERSION_2_SCHEMA = VERSION_1_SCHEMA + listOf(
+            "CREATE TABLE IF NOT EXISTS `balance_corrections` (" +
+                "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`periodStartEpochDay` INTEGER NOT NULL, `kind` TEXT NOT NULL, " +
+                "`categoryId` INTEGER, `currency` TEXT NOT NULL, `amountMinor` INTEGER NOT NULL)",
+            "CREATE INDEX IF NOT EXISTS `index_balance_corrections_periodStartEpochDay` " +
+                "ON `balance_corrections` (`periodStartEpochDay`)",
         )
     }
 }

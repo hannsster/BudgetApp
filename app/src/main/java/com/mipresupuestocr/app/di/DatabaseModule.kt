@@ -2,6 +2,7 @@ package com.mipresupuestocr.app.di
 
 import android.content.Context
 import androidx.room.Room
+import com.mipresupuestocr.app.data.local.AccountDao
 import com.mipresupuestocr.app.data.local.AppDatabase
 import com.mipresupuestocr.app.data.local.BalanceCorrectionDao
 import com.mipresupuestocr.app.data.local.CategoryDao
@@ -24,8 +25,8 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
         Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.NAME)
-            // Every version bump needs a migration here; never drop a user's budget.
-            .addMigrations(AppDatabase.MIGRATION_1_2)
+            // Every version bump needs a migration here; an in-app update must keep the data.
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
             .build()
 
     @Provides
@@ -33,6 +34,9 @@ object DatabaseModule {
 
     @Provides
     fun provideCategoryDao(database: AppDatabase): CategoryDao = database.categoryDao()
+
+    @Provides
+    fun provideAccountDao(database: AppDatabase): AccountDao = database.accountDao()
 
     @Provides
     fun provideHoldingDao(database: AppDatabase): HoldingDao = database.holdingDao()

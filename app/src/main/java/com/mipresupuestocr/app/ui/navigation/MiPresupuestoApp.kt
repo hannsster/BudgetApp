@@ -20,6 +20,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.mipresupuestocr.app.ui.accounts.AccountsScreen
 import com.mipresupuestocr.app.ui.budget.BudgetScreen
 import com.mipresupuestocr.app.ui.calculator.CalculatorScreen
 import com.mipresupuestocr.app.ui.dashboard.DashboardScreen
@@ -78,6 +79,7 @@ fun MiPresupuestoApp(
                     onAddTransaction = { navController.navigate(Routes.addEditTransaction()) },
                     onOpenBudget = { navigateToTopLevel(TopLevelDestination.Budget) },
                     onOpenPortfolio = { navigateToTopLevel(TopLevelDestination.Portfolio) },
+                    onOpenAccounts = { navController.navigate(Routes.ACCOUNTS) },
                 )
             }
 
@@ -101,6 +103,10 @@ fun MiPresupuestoApp(
 
             composable(TopLevelDestination.Settings.route) {
                 SettingsScreen()
+            }
+
+            composable(Routes.ACCOUNTS) {
+                AccountsScreen(onBack = { navController.popBackStack() })
             }
 
             composable(

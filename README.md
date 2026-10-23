@@ -81,6 +81,8 @@ without a purchase price; prices simply stay blank and are labelled as such.
   clearly labelled manual override.
 - **Correct a balance without fake entries** — set the available, income, spending or a category's total to the
   right number; the difference is kept as a period correction, marked as adjusted, and removable again.
+- **Accounts** — separate checking, savings, cash and investment balances, each starting from a balance you
+  enter, with every entry assignable to one account.
 - **In-app updates** — the app checks its own GitHub Releases feed, downloads the APK and passes it to
   Android's installer, so an update never touches your data.
 - **Background refresh** — WorkManager refreshes rates and quotes every six hours when a connection exists.

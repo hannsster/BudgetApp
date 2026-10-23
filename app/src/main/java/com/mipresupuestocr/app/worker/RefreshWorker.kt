@@ -86,6 +86,7 @@ class RefreshWorker @AssistedInject constructor(
         AppError.InvalidIncome,
         AppError.InvalidSplit,
         AppError.InvalidShares,
+        AppError.InvalidAccountName,
         AppError.NoData,
         AppError.MissingPaydayAnchor,
         -> false

@@ -13,8 +13,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         RateCacheEntity::class,
         QuoteCacheEntity::class,
         BalanceCorrectionEntity::class,
+        AccountEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -24,6 +25,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun rateCacheDao(): RateCacheDao
     abstract fun quoteCacheDao(): QuoteCacheDao
     abstract fun balanceCorrectionDao(): BalanceCorrectionDao
+    abstract fun accountDao(): AccountDao
 
     companion object {
         const val NAME = "mipresupuestocr.db"
@@ -43,6 +45,29 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS `index_balance_corrections_periodStartEpochDay` " +
                         "ON `balance_corrections` (`periodStartEpochDay`)",
+                )
+            }
+        }
+
+        /**
+         * Version 3 adds accounts and the entry-to-account link. Existing entries are untouched and
+         * simply start out unassigned, so an update never loses a budget.
+         */
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `accounts` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`name` TEXT NOT NULL, " +
+                        "`type` TEXT NOT NULL, " +
+                        "`openingBalanceMinor` INTEGER NOT NULL, " +
+                        "`currency` TEXT NOT NULL, " +
+                        "`sortOrder` INTEGER NOT NULL)",
+                )
+                db.execSQL("ALTER TABLE `transactions` ADD COLUMN `accountId` INTEGER")
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_transactions_accountId` " +
+                        "ON `transactions` (`accountId`)",
                 )
             }
         }

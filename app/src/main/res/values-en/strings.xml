@@ -207,6 +207,37 @@
     <string name="settings_disclaimer_title">Financial notice</string>
     <string name="settings_disclaimer_body">This app is for personal budgeting and general information only. It does not provide financial, investment, tax or legal advice.</string>
 
+    <!-- Accounts -->
+    <string name="action_back">Back</string>
+    <string name="accounts_title">Accounts</string>
+    <string name="accounts_manage">Manage</string>
+    <string name="accounts_total">Total</string>
+    <string name="accounts_empty_title">No accounts yet</string>
+    <string name="accounts_empty_body">Split your money into checking, savings or cash and see how much each account holds.</string>
+    <string name="accounts_add">New account</string>
+    <string name="accounts_new_title">New account</string>
+    <string name="accounts_edit_title">Edit account</string>
+    <string name="accounts_name">Name</string>
+    <string name="accounts_type">Type</string>
+    <string name="accounts_opening_balance">Starting balance (₡)</string>
+    <string name="accounts_opening_helper">What the account already held when you started using the app. The balance adds income and subtracts expenses recorded for this account.</string>
+    <string name="accounts_delete_title">Delete this account?</string>
+    <string name="accounts_delete_body">Entries are kept; they just stop being assigned to this account.</string>
+    <string name="account_type_checking">Checking</string>
+    <string name="account_type_savings">Savings</string>
+    <string name="account_type_cash">Cash</string>
+    <string name="account_type_investment">Investment</string>
+    <string name="transaction_account">Account</string>
+    <string name="transaction_no_account">No account</string>
+    <plurals name="accounts_summary">
+        <item quantity="one">Across %1$d account</item>
+        <item quantity="other">Across %1$d accounts</item>
+    </plurals>
+    <plurals name="accounts_entries">
+        <item quantity="one">%1$d entry</item>
+        <item quantity="other">%1$d entries</item>
+    </plurals>
+
     <!-- Errors -->
     <string name="error_missing_api_key">The market data API key is missing.</string>
     <string name="error_network">No connection, or the service is not responding.</string>
@@ -228,6 +259,7 @@
     <string name="error_no_data">No data.</string>
     <string name="error_unknown">An unexpected error occurred.</string>
     <string name="error_invalid_shares">Units must be greater than zero.</string>
+    <string name="error_invalid_account_name">The account name cannot be empty.</string>
 
     <!-- Default categories -->
     <string name="category_housing">Rent or mortgage</string>

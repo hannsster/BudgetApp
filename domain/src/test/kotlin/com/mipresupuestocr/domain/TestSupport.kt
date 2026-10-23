@@ -1,5 +1,6 @@
 package com.mipresupuestocr.domain
 
+import com.mipresupuestocr.domain.model.Account
 import com.mipresupuestocr.domain.model.AppResult
 import com.mipresupuestocr.domain.model.BalanceCorrection
 import com.mipresupuestocr.domain.model.Category
@@ -11,6 +12,7 @@ import com.mipresupuestocr.domain.model.ManualRateInput
 import com.mipresupuestocr.domain.model.Quote
 import com.mipresupuestocr.domain.model.Transaction
 import com.mipresupuestocr.domain.model.UserSettings
+import com.mipresupuestocr.domain.repository.AccountRepository
 import com.mipresupuestocr.domain.repository.BalanceCorrectionRepository
 import com.mipresupuestocr.domain.repository.CategoryRepository
 import com.mipresupuestocr.domain.repository.HoldingRepository
@@ -50,6 +52,27 @@ class FakeTransactionRepository(initial: List<Transaction> = emptyList()) : Tran
     }
 
     override suspend fun delete(id: Long) {
+        state.value = state.value.filterNot { it.id == id }
+    }
+}
+
+class FakeAccountRepository(initial: List<Account> = emptyList()) : AccountRepository {
+    private val state = MutableStateFlow(initial)
+
+    val deleted = mutableListOf<Long>()
+
+    override fun observeAll(): Flow<List<Account>> = state
+
+    override suspend fun getById(id: Long): Account? = state.value.firstOrNull { it.id == id }
+
+    override suspend fun upsert(account: Account): Long {
+        val id = if (account.id == 0L) (state.value.maxOfOrNull { it.id } ?: 0L) + 1 else account.id
+        state.value = state.value.filterNot { it.id == id } + account.copy(id = id)
+        return id
+    }
+
+    override suspend fun delete(id: Long) {
+        deleted += id
         state.value = state.value.filterNot { it.id == id }
     }
 }

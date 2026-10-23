@@ -73,6 +73,27 @@ interface BalanceCorrectionDao {
 }
 
 @Dao
+interface AccountDao {
+    @Query("SELECT * FROM accounts ORDER BY sortOrder ASC, name ASC")
+    fun observeAll(): Flow<List<AccountEntity>>
+
+    @Query("SELECT * FROM accounts ORDER BY sortOrder ASC, name ASC")
+    suspend fun getAll(): List<AccountEntity>
+
+    @Query("SELECT * FROM accounts WHERE id = :id")
+    suspend fun getById(id: Long): AccountEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(entity: AccountEntity): Long
+
+    @Query("UPDATE transactions SET accountId = NULL WHERE accountId = :id")
+    suspend fun detachTransactions(id: Long)
+
+    @Query("DELETE FROM accounts WHERE id = :id")
+    suspend fun delete(id: Long)
+}
+
+@Dao
 interface HoldingDao {
     @Query("SELECT * FROM holdings ORDER BY ticker ASC")
     fun observeAll(): Flow<List<HoldingEntity>>

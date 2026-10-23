@@ -25,6 +25,8 @@ data class Transaction(
     val date: LocalDate,
     val note: String = "",
     val createdAt: Instant? = null,
+    /** The account this entry moved money in or out of; null when it is not tracked by account. */
+    val accountId: Long? = null,
 )
 
 enum class PeriodType { MONTHLY, BIWEEKLY }

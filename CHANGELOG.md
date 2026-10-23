@@ -6,6 +6,24 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-23
+
+### Added
+
+- Accounts: keep money in named places — checking, savings, cash or investment — and see the balance of each
+  plus the total. Each account has an optional starting balance, so a savings account does not start at zero
+  just because the app only saw this month's entries.
+- An entry can be assigned to an account; its balance adds income and subtracts expenses recorded for it.
+- **Cuentas** card on the dashboard and a dedicated screen to create, edit and delete accounts. Deleting an
+  account keeps its entries and only detaches them.
+- `accounts` table, an `accountId` column on entries and a real version 2 → 3 Room migration.
+
+### Changed
+
+- Migrations are now required and registered explicitly instead of falling back to a destructive one, so a
+  future schema bump can never silently wipe the data an update is meant to keep.
+- Version bumped to 1.4.0 (versionCode 5).
+
 ## [1.3.0] - 2026-10-22
 
 ### Added

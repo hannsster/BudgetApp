@@ -25,6 +25,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -63,7 +64,9 @@ import com.mipresupuestocr.app.ui.components.StatusChip
 import com.mipresupuestocr.app.ui.components.TargetProgress
 import com.mipresupuestocr.app.ui.theme.positiveColor
 import com.mipresupuestocr.app.ui.util.MoneyFormat
+import com.mipresupuestocr.app.ui.util.accountTypeLabel
 import com.mipresupuestocr.app.ui.util.parseAmount
+import com.mipresupuestocr.domain.model.AccountBalance
 import com.mipresupuestocr.domain.model.CategoryProgress
 import com.mipresupuestocr.domain.model.CurrencyCode
 import com.mipresupuestocr.domain.model.Money
@@ -75,6 +78,7 @@ fun DashboardScreen(
     onAddTransaction: () -> Unit,
     onOpenBudget: () -> Unit,
     onOpenPortfolio: () -> Unit,
+    onOpenAccounts: () -> Unit,
     viewModel: DashboardViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -276,6 +280,13 @@ fun DashboardScreen(
                 }
 
                 item {
+                    AccountsCard(
+                        accounts = state.accounts,
+                        onOpenAccounts = onOpenAccounts,
+                    )
+                }
+
+                item {
                     SectionCard {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -416,6 +427,73 @@ private fun CategoryRow(progress: CategoryProgress) {
         ),
         fraction = progress.progressFraction,
     )
+}
+
+/** Where the money sits, per account. Balances cover all time, not just the visible period. */
+@Composable
+private fun AccountsCard(
+    accounts: List<AccountBalance>,
+    onOpenAccounts: () -> Unit,
+) {
+    SectionCard {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            CardTitle(stringResource(R.string.accounts_title))
+            TextButton(onClick = onOpenAccounts) {
+                Text(stringResource(R.string.accounts_manage))
+            }
+        }
+
+        if (accounts.isEmpty()) {
+            Text(
+                text = stringResource(R.string.accounts_empty_body),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            TextButton(onClick = onOpenAccounts) {
+                Text(stringResource(R.string.accounts_add))
+            }
+        } else {
+            accounts.forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = row.account.name,
+                            style = MaterialTheme.typography.bodyLarge,
+                        )
+                        Text(
+                            text = accountTypeLabel(row.account.type),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Text(
+                        text = MoneyFormat.format(row.balance),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = if (row.balance.isNegative) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
+                    )
+                }
+            }
+            HorizontalDivider()
+            KeyValueRow(
+                label = stringResource(R.string.accounts_total),
+                value = MoneyFormat.format(
+                    Money(accounts.sumOf { it.balance.amountMinor }, CurrencyCode.CRC),
+                ),
+                emphasize = true,
+            )
+        }
+    }
 }
 
 @Composable

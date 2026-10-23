@@ -46,6 +46,24 @@ must be uninstalled once before switching over.
 - **Category targets:** progress for categories that have a target.
 - Pull the refresh icon in the top bar (or the refresh action on the portfolio) to update rates and quotes.
 
+## Accounts: where your money sits
+
+Accounts keep checking, savings, cash and investments apart, so “available” in the budget and “in the bank”
+stay two different questions.
+
+1. On the dashboard tap **Administrar** in the **Cuentas** card (or **Nueva cuenta** if there are none yet).
+2. Tap **Nueva cuenta**, type a name, pick the type — Corriente, Ahorros, Efectivo or Inversión — and, if the
+   account already held money, its **saldo inicial**. Tap **Guardar**.
+3. When you record an income or expense, the **Cuenta** button lets you pick which account it belongs to.
+   Leaving it as **Sin cuenta** keeps the entry out of every account balance.
+
+The balance of an account is its starting balance plus the income and minus the expenses assigned to it. It
+covers all time, not just the visible period, so switching months never changes it. The **Total** at the top of
+Cuentas is the sum of all accounts.
+
+Tap an account to rename it, change its type or starting balance, or delete it. Deleting an account never
+deletes history: its entries stay in the budget and simply stop being assigned to an account.
+
 ## Recording income and expenses
 
 1. Tap **New entry**.

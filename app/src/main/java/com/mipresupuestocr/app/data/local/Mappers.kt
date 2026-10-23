@@ -1,5 +1,7 @@
 package com.mipresupuestocr.app.data.local
 
+import com.mipresupuestocr.domain.model.Account
+import com.mipresupuestocr.domain.model.AccountType
 import com.mipresupuestocr.domain.model.BalanceCorrection
 import com.mipresupuestocr.domain.model.Category
 import com.mipresupuestocr.domain.model.CategoryBucket
@@ -41,6 +43,7 @@ fun TransactionEntity.toDomain(): Transaction = Transaction(
     date = LocalDate.ofEpochDay(dateEpochDay),
     note = note,
     createdAt = Instant.ofEpochMilli(createdAtMillis),
+    accountId = accountId,
 )
 
 fun Transaction.toEntity(): TransactionEntity = TransactionEntity(
@@ -52,6 +55,24 @@ fun Transaction.toEntity(): TransactionEntity = TransactionEntity(
     dateEpochDay = date.toEpochDay(),
     note = note,
     createdAtMillis = (createdAt ?: Instant.EPOCH).toEpochMilli(),
+    accountId = accountId,
+)
+
+fun AccountEntity.toDomain(): Account = Account(
+    id = id,
+    name = name,
+    type = runCatching { AccountType.valueOf(type) }.getOrDefault(AccountType.CHECKING),
+    openingBalance = Money(openingBalanceMinor, CurrencyCode.fromIsoCode(currency) ?: CurrencyCode.CRC),
+    sortOrder = sortOrder,
+)
+
+fun Account.toEntity(): AccountEntity = AccountEntity(
+    id = id,
+    name = name,
+    type = type.name,
+    openingBalanceMinor = openingBalance.amountMinor,
+    currency = openingBalance.currency.isoCode,
+    sortOrder = sortOrder,
 )
 
 fun BalanceCorrectionEntity.toDomain(): BalanceCorrection = BalanceCorrection(

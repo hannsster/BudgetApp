@@ -19,6 +19,7 @@ sealed interface AppError {
     data object InvalidRate : AppError
     data object InvalidAmount : AppError
     data object InvalidShares : AppError
+    data object InvalidAccountName : AppError
     data object InvalidIncome : AppError
     data object InvalidSplit : AppError
     data class InvalidTicker(val ticker: String) : AppError

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mipresupuestocr.app.ui.navigation.Routes
 import com.mipresupuestocr.app.ui.util.parseAmount
+import com.mipresupuestocr.domain.model.Account
 import com.mipresupuestocr.domain.model.AppError
 import com.mipresupuestocr.domain.model.AppResult
 import com.mipresupuestocr.domain.model.Category
@@ -13,6 +14,7 @@ import com.mipresupuestocr.domain.model.CurrencyCode
 import com.mipresupuestocr.domain.model.Money
 import com.mipresupuestocr.domain.model.Transaction
 import com.mipresupuestocr.domain.model.TransactionType
+import com.mipresupuestocr.domain.repository.AccountRepository
 import com.mipresupuestocr.domain.repository.CategoryRepository
 import com.mipresupuestocr.domain.repository.TransactionRepository
 import com.mipresupuestocr.domain.usecase.DeleteTransactionUseCase
@@ -36,9 +38,11 @@ data class TransactionFormState(
     val type: TransactionType = TransactionType.EXPENSE,
     val amountText: String = "",
     val categoryId: Long? = null,
+    val accountId: Long? = null,
     val date: LocalDate,
     val note: String = "",
     val categories: List<Category> = emptyList(),
+    val accounts: List<Account> = emptyList(),
     val error: AppError? = null,
     val isSaving: Boolean = false,
     val finished: Boolean = false,
@@ -47,8 +51,9 @@ data class TransactionFormState(
 
 @HiltViewModel
 class AddEditTransactionViewModel @Inject constructor(
-    private val transactionRepository: TransactionRepository,
+    private val    transactionRepository: TransactionRepository,
     categoryRepository: CategoryRepository,
+    private val accountRepository: AccountRepository,
     private val saveTransaction: SaveTransactionUseCase,
     private val deleteTransaction: DeleteTransactionUseCase,
     clock: Clock,
@@ -66,8 +71,13 @@ class AddEditTransactionViewModel @Inject constructor(
     )
 
     private val allCategories = categoryRepository.observeAll()
+    private val allAccounts = accountRepository.observeAll()
 
-    val uiState: StateFlow<TransactionFormState> = combine(form, allCategories) { state, categories ->
+    val uiState: StateFlow<TransactionFormState> = combine(
+        form,
+        allCategories,
+        allAccounts,
+    ) { state, categories, accounts ->
         state.copy(
             isLoading = false,
             categories = categories.filter { category ->
@@ -76,6 +86,7 @@ class AddEditTransactionViewModel @Inject constructor(
                     TransactionType.INCOME -> category.bucket == CategoryBucket.INCOME
                 }
             },
+            accounts = accounts,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -94,6 +105,7 @@ class AddEditTransactionViewModel @Inject constructor(
                             type = existing.type,
                             amountText = plainAmount(existing.amount),
                             categoryId = existing.categoryId,
+                            accountId = existing.accountId,
                             date = existing.date,
                             note = existing.note,
                         )
@@ -112,6 +124,8 @@ class AddEditTransactionViewModel @Inject constructor(
     }
 
     fun setCategory(categoryId: Long?) = form.update { it.copy(categoryId = categoryId) }
+
+    fun setAccount(accountId: Long?) = form.update { it.copy(accountId = accountId) }
 
     fun setDate(date: LocalDate) = form.update { it.copy(date = date) }
 
@@ -133,6 +147,7 @@ class AddEditTransactionViewModel @Inject constructor(
                 categoryId = form.value.categoryId,
                 date = form.value.date,
                 note = form.value.note,
+                accountId = form.value.accountId,
             )
 
             when (val result = saveTransaction(transaction)) {

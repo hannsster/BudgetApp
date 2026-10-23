@@ -207,6 +207,37 @@
     <string name="settings_disclaimer_title">Aviso financiero</string>
     <string name="settings_disclaimer_body">Esta app es para presupuesto personal e información general. No ofrece asesoría financiera, de inversión, fiscal ni legal.</string>
 
+    <!-- Accounts -->
+    <string name="action_back">Volver</string>
+    <string name="accounts_title">Cuentas</string>
+    <string name="accounts_manage">Administrar</string>
+    <string name="accounts_total">Total</string>
+    <string name="accounts_empty_title">Aún no tienes cuentas</string>
+    <string name="accounts_empty_body">Separa tu dinero por cuenta corriente, ahorros o efectivo y mira cuánto hay en cada una.</string>
+    <string name="accounts_add">Nueva cuenta</string>
+    <string name="accounts_new_title">Nueva cuenta</string>
+    <string name="accounts_edit_title">Editar cuenta</string>
+    <string name="accounts_name">Nombre</string>
+    <string name="accounts_type">Tipo</string>
+    <string name="accounts_opening_balance">Saldo inicial (₡)</string>
+    <string name="accounts_opening_helper">Lo que la cuenta ya tenía cuando empezaste a usar la app. El saldo suma los ingresos y resta los gastos de esta cuenta.</string>
+    <string name="accounts_delete_title">¿Eliminar esta cuenta?</string>
+    <string name="accounts_delete_body">Los movimientos se conservan; solo dejan de estar asignados a esta cuenta.</string>
+    <string name="account_type_checking">Corriente</string>
+    <string name="account_type_savings">Ahorros</string>
+    <string name="account_type_cash">Efectivo</string>
+    <string name="account_type_investment">Inversión</string>
+    <string name="transaction_account">Cuenta</string>
+    <string name="transaction_no_account">Sin cuenta</string>
+    <plurals name="accounts_summary">
+        <item quantity="one">En %1$d cuenta</item>
+        <item quantity="other">En %1$d cuentas</item>
+    </plurals>
+    <plurals name="accounts_entries">
+        <item quantity="one">%1$d movimiento</item>
+        <item quantity="other">%1$d movimientos</item>
+    </plurals>
+
     <!-- Errors -->
     <string name="error_missing_api_key">Falta la clave de la API de datos de mercado.</string>
     <string name="error_network">No hay conexión o el servicio no responde.</string>
@@ -228,6 +259,7 @@
     <string name="error_no_data">Sin datos.</string>
     <string name="error_unknown">Ocurrió un error inesperado.</string>
     <string name="error_invalid_shares">Las unidades deben ser mayores que cero.</string>
+    <string name="error_invalid_account_name">El nombre de la cuenta no puede estar vacío.</string>
 
     <!-- Default categories -->
     <string name="category_housing">Alquiler o hipoteca</string>

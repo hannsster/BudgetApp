@@ -14,9 +14,19 @@ data class CategoryEntity(
     val sortOrder: Int = 0,
 )
 
+@Entity(tableName = "accounts")
+data class AccountEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
+    val name: String,
+    val type: String,
+    val openingBalanceMinor: Long = 0L,
+    val currency: String = "CRC",
+    val sortOrder: Int = 0,
+)
+
 @Entity(
     tableName = "transactions",
-    indices = [Index("dateEpochDay"), Index("categoryId")],
+    indices = [Index("dateEpochDay"), Index("categoryId"), Index("accountId")],
 )
 data class TransactionEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0L,
@@ -27,6 +37,7 @@ data class TransactionEntity(
     val dateEpochDay: Long,
     val note: String = "",
     val createdAtMillis: Long = 0L,
+    val accountId: Long? = null,
 )
 
 @Entity(tableName = "holdings")

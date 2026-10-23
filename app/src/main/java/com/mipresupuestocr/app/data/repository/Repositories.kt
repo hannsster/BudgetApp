@@ -1,5 +1,7 @@
 package com.mipresupuestocr.app.data.repository
 
+import androidx.room.withTransaction
+import com.mipresupuestocr.app.data.local.AppDatabase
 import com.mipresupuestocr.app.data.local.BalanceCorrectionDao
 import com.mipresupuestocr.app.data.local.BalanceCorrectionEntity
 import com.mipresupuestocr.app.data.local.CategoryDao
@@ -7,6 +9,7 @@ import com.mipresupuestocr.app.data.local.HoldingDao
 import com.mipresupuestocr.app.data.local.TransactionDao
 import com.mipresupuestocr.app.data.local.toDomain
 import com.mipresupuestocr.app.data.local.toEntity
+import com.mipresupuestocr.domain.model.Account
 import com.mipresupuestocr.domain.model.AppResult
 import com.mipresupuestocr.domain.model.BalanceCorrection
 import com.mipresupuestocr.domain.model.Category
@@ -19,6 +22,7 @@ import com.mipresupuestocr.domain.model.Quote
 import com.mipresupuestocr.domain.model.Transaction
 import com.mipresupuestocr.domain.provider.ExchangeRateProvider
 import com.mipresupuestocr.domain.provider.MarketQuoteProvider
+import com.mipresupuestocr.domain.repository.AccountRepository
 import com.mipresupuestocr.domain.repository.BalanceCorrectionRepository
 import com.mipresupuestocr.domain.repository.CategoryRepository
 import com.mipresupuestocr.domain.repository.HoldingRepository
@@ -53,6 +57,29 @@ class DefaultTransactionRepository @Inject constructor(
     override suspend fun upsert(transaction: Transaction): Long = dao.upsert(transaction.toEntity())
 
     override suspend fun delete(id: Long) = dao.delete(id)
+}
+
+@Singleton
+class DefaultAccountRepository @Inject constructor(
+    private val database: AppDatabase,
+) : AccountRepository {
+
+    private val dao = database.accountDao()
+
+    override fun observeAll(): Flow<List<Account>> =
+        dao.observeAll().map { rows -> rows.map { it.toDomain() } }
+
+    override suspend fun getById(id: Long): Account? = dao.getById(id)?.toDomain()
+
+    override suspend fun upsert(account: Account): Long = dao.upsert(account.toEntity())
+
+    /** Detaching and deleting happen together, so a half-deleted account can never linger. */
+    override suspend fun delete(id: Long) {
+        database.withTransaction {
+            dao.detachTransactions(id)
+            dao.delete(id)
+        }
+    }
 }
 
 @Singleton

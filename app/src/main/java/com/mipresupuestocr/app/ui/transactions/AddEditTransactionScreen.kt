@@ -60,6 +60,7 @@ fun AddEditTransactionScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var showDatePicker by remember { mutableStateOf(false) }
     var showCategoryPicker by remember { mutableStateOf(false) }
+    var showAccountPicker by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.finished, state.deleted) {
@@ -139,6 +140,21 @@ fun AddEditTransactionScreen(
                     Text(
                         text = selected?.name ?: stringResource(R.string.transaction_no_category),
                     )
+                }
+            }
+
+            if (state.accounts.isNotEmpty()) {
+                item {
+                    val selected = state.accounts.firstOrNull { it.id == state.accountId }
+                    OutlinedButton(
+                        onClick = { showAccountPicker = true },
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(
+                            text = stringResource(R.string.transaction_account) + ": " +
+                                (selected?.name ?: stringResource(R.string.transaction_no_account)),
+                        )
+                    }
                 }
             }
 
@@ -273,6 +289,68 @@ fun AddEditTransactionScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showCategoryPicker = false }) {
+                    Text(stringResource(R.string.action_close))
+                }
+            },
+        )
+    }
+
+    if (showAccountPicker) {
+        AlertDialog(
+            onDismissRequest = { showAccountPicker = false },
+            title = { Text(stringResource(R.string.transaction_account)) },
+            text = {
+                LazyColumn {
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.setAccount(null)
+                                    showAccountPicker = false
+                                }
+                                .padding(vertical = 8.dp),
+                        ) {
+                            RadioButton(
+                                selected = state.accountId == null,
+                                onClick = {
+                                    viewModel.setAccount(null)
+                                    showAccountPicker = false
+                                },
+                            )
+                            Text(
+                                text = stringResource(R.string.transaction_no_account),
+                                modifier = Modifier.padding(top = 12.dp),
+                            )
+                        }
+                    }
+                    items(state.accounts) { account ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.setAccount(account.id)
+                                    showAccountPicker = false
+                                }
+                                .padding(vertical = 8.dp),
+                        ) {
+                            RadioButton(
+                                selected = state.accountId == account.id,
+                                onClick = {
+                                    viewModel.setAccount(account.id)
+                                    showAccountPicker = false
+                                },
+                            )
+                            Text(
+                                text = account.name,
+                                modifier = Modifier.padding(top = 12.dp),
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showAccountPicker = false }) {
                     Text(stringResource(R.string.action_close))
                 }
             },

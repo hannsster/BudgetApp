@@ -24,6 +24,7 @@ enum class TopLevelDestination(
 
 object Routes {
     const val TRANSACTION_ID_ARG = "transactionId"
+    const val ACCOUNTS = "accounts"
     const val HOLDING_ID_ARG = "holdingId"
 
     const val ADD_EDIT_TRANSACTION = "transaction?$TRANSACTION_ID_ARG={$TRANSACTION_ID_ARG}"

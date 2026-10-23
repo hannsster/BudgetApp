@@ -1,5 +1,6 @@
 package com.mipresupuestocr.domain.repository
 
+import com.mipresupuestocr.domain.model.Account
 import com.mipresupuestocr.domain.model.AppResult
 import com.mipresupuestocr.domain.model.BalanceCorrection
 import com.mipresupuestocr.domain.model.Category
@@ -46,6 +47,14 @@ interface BalanceCorrectionRepository {
     )
 
     suspend fun clear(periodStart: LocalDate, kind: CorrectionKind, categoryId: Long? = null)
+}
+
+/** Places the user keeps money. Deleting an account detaches its entries instead of removing them. */
+interface AccountRepository {
+    fun observeAll(): Flow<List<Account>>
+    suspend fun getById(id: Long): Account?
+    suspend fun upsert(account: Account): Long
+    suspend fun delete(id: Long)
 }
 
 interface HoldingRepository {
