@@ -94,6 +94,25 @@ interface AccountDao {
 }
 
 @Dao
+interface AccountTransferDao {
+    @Query("SELECT * FROM account_transfers ORDER BY dateEpochDay DESC, id DESC")
+    fun observeAll(): Flow<List<AccountTransferEntity>>
+
+    @Query("SELECT * FROM account_transfers ORDER BY dateEpochDay DESC, id DESC")
+    suspend fun getAll(): List<AccountTransferEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(entity: AccountTransferEntity): Long
+
+    @Query("DELETE FROM account_transfers WHERE id = :id")
+    suspend fun delete(id: Long)
+
+    /** A transfer whose account is gone has nowhere to land, so it is removed with that account. */
+    @Query("DELETE FROM account_transfers WHERE fromAccountId = :accountId OR toAccountId = :accountId")
+    suspend fun deleteForAccount(accountId: Long)
+}
+
+@Dao
 interface HoldingDao {
     @Query("SELECT * FROM holdings ORDER BY ticker ASC")
     fun observeAll(): Flow<List<HoldingEntity>>

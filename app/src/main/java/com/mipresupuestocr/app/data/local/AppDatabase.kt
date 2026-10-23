@@ -14,8 +14,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         QuoteCacheEntity::class,
         BalanceCorrectionEntity::class,
         AccountEntity::class,
+        AccountTransferEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -26,6 +27,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun quoteCacheDao(): QuoteCacheDao
     abstract fun balanceCorrectionDao(): BalanceCorrectionDao
     abstract fun accountDao(): AccountDao
+    abstract fun accountTransferDao(): AccountTransferDao
 
     companion object {
         const val NAME = "mipresupuestocr.db"
@@ -68,6 +70,37 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL(
                     "CREATE INDEX IF NOT EXISTS `index_transactions_accountId` " +
                         "ON `transactions` (`accountId`)",
+                )
+            }
+        }
+
+        /**
+         * Version 4 adds transfers between accounts. They live in their own table so moving money
+         * from checking into savings never counts as spending or income in the budget.
+         */
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `account_transfers` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`fromAccountId` INTEGER NOT NULL, " +
+                        "`toAccountId` INTEGER NOT NULL, " +
+                        "`amountMinor` INTEGER NOT NULL, " +
+                        "`currency` TEXT NOT NULL, " +
+                        "`dateEpochDay` INTEGER NOT NULL, " +
+                        "`note` TEXT NOT NULL)",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_account_transfers_fromAccountId` " +
+                        "ON `account_transfers` (`fromAccountId`)",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_account_transfers_toAccountId` " +
+                        "ON `account_transfers` (`toAccountId`)",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_account_transfers_dateEpochDay` " +
+                        "ON `account_transfers` (`dateEpochDay`)",
                 )
             }
         }

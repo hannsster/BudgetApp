@@ -70,6 +70,7 @@ import com.mipresupuestocr.domain.model.AccountBalance
 import com.mipresupuestocr.domain.model.CategoryProgress
 import com.mipresupuestocr.domain.model.CurrencyCode
 import com.mipresupuestocr.domain.model.Money
+import com.mipresupuestocr.domain.model.NetWorth
 import java.math.BigDecimal
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -189,6 +190,11 @@ fun DashboardScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            val netWorth = state.netWorth
+            if (netWorth != null && (state.accounts.isNotEmpty() || snapshot?.portfolio?.isEmpty == false)) {
+                item { NetWorthCard(netWorth) }
+            }
+
             item {
                 PeriodHeader(
                     periodLabel = state.period?.let { period ->
@@ -380,6 +386,52 @@ fun DashboardScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * Everything the user owns, on one line: account balances plus the portfolio at the current rate.
+ * Shown above the period figures because it answers "how much do I have", not "how is this month".
+ */
+@Composable
+private fun NetWorthCard(netWorth: NetWorth) {
+    SectionCard {
+        Text(
+            text = stringResource(R.string.net_worth_title),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = MoneyFormat.format(netWorth.total),
+            style = MaterialTheme.typography.displayMedium,
+            color = if (netWorth.total.isNegative) {
+                MaterialTheme.colorScheme.error
+            } else {
+                MaterialTheme.colorScheme.primary
+            },
+        )
+        Text(
+            text = stringResource(R.string.net_worth_hint),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        HorizontalDivider()
+        KeyValueRow(
+            label = stringResource(R.string.net_worth_accounts),
+            value = MoneyFormat.format(netWorth.accountsTotal),
+        )
+        KeyValueRow(
+            label = stringResource(R.string.net_worth_portfolio),
+            value = netWorth.portfolioCrc?.let { MoneyFormat.format(it) }
+                ?: stringResource(R.string.net_worth_portfolio_unpriced),
+        )
+        if (netWorth.isPartial) {
+            Text(
+                text = stringResource(R.string.net_worth_partial),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.tertiary,
+            )
         }
     }
 }

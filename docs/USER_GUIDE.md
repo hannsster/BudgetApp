@@ -36,6 +36,9 @@ must be uninstalled once before switching over.
 
 ## Dashboard
 
+- **Patrimonio total:** the big figure at the top is everything you own — the sum of your account balances plus
+  the portfolio at the current USD/CRC rate. The two parts appear below it. If a holding has no quote (or there
+  is no rate yet), the portfolio is left out and the card says the total is a lower bound.
 - **Period header:** use the arrows to walk month by month (or 14-day cycle by cycle).
 - **Available:** income recorded in the period minus expenses, with a progress bar for how much of the income is
   already spent.
@@ -62,7 +65,18 @@ covers all time, not just the visible period, so switching months never changes 
 Cuentas is the sum of all accounts.
 
 Tap an account to rename it, change its type or starting balance, or delete it. Deleting an account never
-deletes history: its entries stay in the budget and simply stop being assigned to an account.
+deletes history: its entries stay in the budget and simply stop being assigned to an account. Transfers that
+touched the deleted account are removed, because one of their two sides would no longer exist.
+
+### Moving money between accounts
+
+1. Open **Cuentas** (dashboard → **Administrar**).
+2. Tap **Transferir**, pick the account the money leaves and the one it lands in, and type the amount.
+3. Tap **Transferir** again to record it.
+
+A transfer is not income and not spending: it lowers one balance, raises the other, and leaves the budget
+figures and the total untouched. The accounts screen lists the last few transfers under the balances; tap the
+bin icon to delete one, which puts both balances back the way they were.
 
 ## Recording income and expenses
 

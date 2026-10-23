@@ -4,7 +4,9 @@ import android.content.Context
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.mipresupuestocr.app.data.repository.DefaultAccountRepository
+import com.mipresupuestocr.app.data.repository.DefaultTransferRepository
 import com.mipresupuestocr.domain.model.Account
+import com.mipresupuestocr.domain.model.AccountTransfer
 import com.mipresupuestocr.domain.model.AccountType
 import com.mipresupuestocr.domain.model.Category
 import com.mipresupuestocr.domain.model.CategoryBucket
@@ -142,6 +144,62 @@ class AppDatabaseTest {
         val entry = transactionDao.getById(entryId)
         assertEquals("the entry itself is kept", 1, transactionDao.getBetween(0L, Long.MAX_VALUE).size)
         assertNull("the entry loses the account link", entry!!.accountId)
+    }
+
+    @Test
+    fun `transfers round trip between two accounts`() = runTest {
+        val accounts = database.accountDao()
+        val checkingId = accounts.upsert(Account(name = "Corriente").toEntity())
+        val savingsId = accounts.upsert(
+            Account(name = "Ahorros", type = AccountType.SAVINGS).toEntity(),
+        )
+        val transfers = DefaultTransferRepository(database.accountTransferDao())
+
+        transfers.save(
+            AccountTransfer(
+                fromAccountId = checkingId,
+                toAccountId = savingsId,
+                amount = Money.ofMajor("125000.50", CurrencyCode.CRC),
+                date = LocalDate.of(2026, 10, 12),
+            ),
+        )
+
+        val stored = transfers.observeAll().first().single()
+        assertEquals(checkingId, stored.fromAccountId)
+        assertEquals(savingsId, stored.toAccountId)
+        assertEquals(Money.ofMajor("125000.50", CurrencyCode.CRC), stored.amount)
+        assertEquals(LocalDate.of(2026, 10, 12), stored.date)
+    }
+
+    @Test
+    fun `deleting an account removes only the transfers that touched it`() = runTest {
+        val accounts = database.accountDao()
+        val checking = accounts.upsert(Account(name = "Corriente").toEntity())
+        val savings = accounts.upsert(Account(name = "Ahorros").toEntity())
+        val cash = accounts.upsert(Account(name = "Efectivo", type = AccountType.CASH).toEntity())
+        val transfers = DefaultTransferRepository(database.accountTransferDao())
+        transfers.save(
+            AccountTransfer(
+                fromAccountId = checking,
+                toAccountId = savings,
+                amount = Money.ofMajor("10000", CurrencyCode.CRC),
+                date = LocalDate.of(2026, 10, 10),
+            ),
+        )
+        transfers.save(
+            AccountTransfer(
+                fromAccountId = savings,
+                toAccountId = cash,
+                amount = Money.ofMajor("5000", CurrencyCode.CRC),
+                date = LocalDate.of(2026, 10, 11),
+            ),
+        )
+
+        DefaultAccountRepository(database).delete(checking)
+
+        val remaining = transfers.observeAll().first().single()
+        assertEquals("the unrelated transfer survives", cash, remaining.toAccountId)
+        assertEquals(savings, remaining.fromAccountId)
     }
 
     @Test

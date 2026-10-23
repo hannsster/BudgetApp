@@ -1,6 +1,7 @@
 package com.mipresupuestocr.domain.repository
 
 import com.mipresupuestocr.domain.model.Account
+import com.mipresupuestocr.domain.model.AccountTransfer
 import com.mipresupuestocr.domain.model.AppResult
 import com.mipresupuestocr.domain.model.BalanceCorrection
 import com.mipresupuestocr.domain.model.Category
@@ -54,6 +55,13 @@ interface AccountRepository {
     fun observeAll(): Flow<List<Account>>
     suspend fun getById(id: Long): Account?
     suspend fun upsert(account: Account): Long
+    suspend fun delete(id: Long)
+}
+
+/** Movements of money between two accounts; they never count as income or spending. */
+interface TransferRepository {
+    fun observeAll(): Flow<List<AccountTransfer>>
+    suspend fun save(transfer: AccountTransfer): Long
     suspend fun delete(id: Long)
 }
 

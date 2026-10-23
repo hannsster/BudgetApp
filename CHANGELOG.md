@@ -6,6 +6,24 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-23
+
+### Added
+
+- Transfers between accounts: a **Transferir** button on the Cuentas screen moves money from one account to
+  another. A transfer changes both balances but is recorded separately, so it never counts as income or
+  spending. Recent transfers are listed and can be removed, which puts both balances back.
+- **Patrimonio total** at the top of the dashboard: account balances plus the portfolio at the current
+  USD/CRC rate, with the two parts broken out below. When part of the portfolio cannot be valued the card says
+  the total is a lower bound instead of hiding it.
+- `account_transfers` table and a version 3 → 4 Room migration.
+
+### Changed
+
+- Deleting an account also removes the transfers that touched it, since one side of them would have nowhere
+  to land; its entries are still kept.
+- Version bumped to 1.5.0.
+
 ## [1.4.0] - 2026-10-23
 
 ### Added

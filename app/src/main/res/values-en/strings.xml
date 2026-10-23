@@ -209,6 +209,13 @@
 
     <!-- Accounts -->
     <string name="action_back">Back</string>
+    <string name="net_worth_title">Net worth</string>
+    <string name="net_worth_hint">Accounts + portfolio at the current exchange rate</string>
+    <string name="net_worth_accounts">Accounts</string>
+    <string name="net_worth_portfolio">Portfolio</string>
+    <string name="net_worth_portfolio_unpriced">Not valued</string>
+    <string name="net_worth_partial">Some holdings have no price, so the total is a lower bound.</string>
+
     <string name="accounts_title">Accounts</string>
     <string name="accounts_manage">Manage</string>
     <string name="accounts_total">Total</string>
@@ -222,7 +229,21 @@
     <string name="accounts_opening_balance">Starting balance (₡)</string>
     <string name="accounts_opening_helper">What the account already held when you started using the app. The balance adds income and subtracts expenses recorded for this account.</string>
     <string name="accounts_delete_title">Delete this account?</string>
-    <string name="accounts_delete_body">Entries are kept; they just stop being assigned to this account.</string>
+    <string name="accounts_delete_body">Entries are kept; they just stop being assigned to this account. Transfers that touched it are removed.</string>
+    <string name="transfer_action">Transfer</string>
+    <string name="transfer_title">Transfer between accounts</string>
+    <string name="transfer_from">From</string>
+    <string name="transfer_to">To</string>
+    <string name="transfer_amount">Amount (₡)</string>
+    <string name="transfer_amount_helper">Leaves one account and lands in the other. It counts as neither spending nor income.</string>
+    <string name="transfer_same_account">Pick two different accounts.</string>
+    <string name="transfer_saved">Transfer recorded</string>
+    <string name="transfer_deleted">Transfer removed</string>
+    <string name="transfer_between">%1$s → %2$s</string>
+    <string name="transfers_title">Transfers</string>
+    <string name="transfer_delete_title">Delete this transfer?</string>
+    <string name="transfer_delete_body">The money returns to the accounts as it was before the transfer.</string>
+    <string name="cd_delete_transfer">Delete transfer</string>
     <string name="account_type_checking">Checking</string>
     <string name="account_type_savings">Savings</string>
     <string name="account_type_cash">Cash</string>
@@ -260,6 +281,7 @@
     <string name="error_unknown">An unexpected error occurred.</string>
     <string name="error_invalid_shares">Units must be greater than zero.</string>
     <string name="error_invalid_account_name">The account name cannot be empty.</string>
+    <string name="error_same_account_transfer">The source and destination accounts must be different.</string>
 
     <!-- Default categories -->
     <string name="category_housing">Rent or mortgage</string>

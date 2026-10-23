@@ -24,6 +24,24 @@ data class AccountEntity(
     val sortOrder: Int = 0,
 )
 
+/**
+ * Moves money between two accounts. Stored apart from `transactions` so a transfer never appears as
+ * income or spending in the budget.
+ */
+@Entity(
+    tableName = "account_transfers",
+    indices = [Index("fromAccountId"), Index("toAccountId"), Index("dateEpochDay")],
+)
+data class AccountTransferEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
+    val fromAccountId: Long,
+    val toAccountId: Long,
+    val amountMinor: Long,
+    val currency: String = "CRC",
+    val dateEpochDay: Long,
+    val note: String = "",
+)
+
 @Entity(
     tableName = "transactions",
     indices = [Index("dateEpochDay"), Index("categoryId"), Index("accountId")],

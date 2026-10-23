@@ -1,6 +1,7 @@
 package com.mipresupuestocr.app.data.local
 
 import com.mipresupuestocr.domain.model.Account
+import com.mipresupuestocr.domain.model.AccountTransfer
 import com.mipresupuestocr.domain.model.AccountType
 import com.mipresupuestocr.domain.model.BalanceCorrection
 import com.mipresupuestocr.domain.model.Category
@@ -73,6 +74,25 @@ fun Account.toEntity(): AccountEntity = AccountEntity(
     openingBalanceMinor = openingBalance.amountMinor,
     currency = openingBalance.currency.isoCode,
     sortOrder = sortOrder,
+)
+
+fun AccountTransferEntity.toDomain(): AccountTransfer = AccountTransfer(
+    id = id,
+    fromAccountId = fromAccountId,
+    toAccountId = toAccountId,
+    amount = Money(amountMinor, CurrencyCode.fromIsoCode(currency) ?: CurrencyCode.CRC),
+    date = LocalDate.ofEpochDay(dateEpochDay),
+    note = note,
+)
+
+fun AccountTransfer.toEntity(): AccountTransferEntity = AccountTransferEntity(
+    id = id,
+    fromAccountId = fromAccountId,
+    toAccountId = toAccountId,
+    amountMinor = amount.amountMinor,
+    currency = amount.currency.isoCode,
+    dateEpochDay = date.toEpochDay(),
+    note = note,
 )
 
 fun BalanceCorrectionEntity.toDomain(): BalanceCorrection = BalanceCorrection(

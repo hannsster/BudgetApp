@@ -26,6 +26,7 @@ sealed interface AppError {
     data object UnknownSymbol : AppError
     data object UnsupportedAsset : AppError
     data object MissingPaydayAnchor : AppError
+    data object SameAccountTransfer : AppError
     data object NoData : AppError
     data object Unknown : AppError
 }

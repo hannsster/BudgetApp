@@ -1,6 +1,7 @@
 package com.mipresupuestocr.app.data.repository
 
 import androidx.room.withTransaction
+import com.mipresupuestocr.app.data.local.AccountTransferDao
 import com.mipresupuestocr.app.data.local.AppDatabase
 import com.mipresupuestocr.app.data.local.BalanceCorrectionDao
 import com.mipresupuestocr.app.data.local.BalanceCorrectionEntity
@@ -10,6 +11,7 @@ import com.mipresupuestocr.app.data.local.TransactionDao
 import com.mipresupuestocr.app.data.local.toDomain
 import com.mipresupuestocr.app.data.local.toEntity
 import com.mipresupuestocr.domain.model.Account
+import com.mipresupuestocr.domain.model.AccountTransfer
 import com.mipresupuestocr.domain.model.AppResult
 import com.mipresupuestocr.domain.model.BalanceCorrection
 import com.mipresupuestocr.domain.model.Category
@@ -31,6 +33,7 @@ import com.mipresupuestocr.domain.repository.QuoteRepository
 import com.mipresupuestocr.domain.repository.RateCache
 import com.mipresupuestocr.domain.repository.RateRepository
 import com.mipresupuestocr.domain.repository.TransactionRepository
+import com.mipresupuestocr.domain.repository.TransferRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -73,13 +76,31 @@ class DefaultAccountRepository @Inject constructor(
 
     override suspend fun upsert(account: Account): Long = dao.upsert(account.toEntity())
 
-    /** Detaching and deleting happen together, so a half-deleted account can never linger. */
+    /**
+     * Detaching and deleting happen together, so a half-deleted account can never linger. Transfers
+     * that touched this account are removed too: with one of their two sides gone, keeping them
+     * would leave the remaining account out of balance for money that no longer has a destination.
+     */
     override suspend fun delete(id: Long) {
         database.withTransaction {
             dao.detachTransactions(id)
+            database.accountTransferDao().deleteForAccount(id)
             dao.delete(id)
         }
     }
+}
+
+@Singleton
+class DefaultTransferRepository @Inject constructor(
+    private val dao: AccountTransferDao,
+) : TransferRepository {
+
+    override fun observeAll(): Flow<List<AccountTransfer>> =
+        dao.observeAll().map { rows -> rows.map { it.toDomain() } }
+
+    override suspend fun save(transfer: AccountTransfer): Long = dao.upsert(transfer.toEntity())
+
+    override suspend fun delete(id: Long) = dao.delete(id)
 }
 
 @Singleton

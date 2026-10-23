@@ -11,6 +11,7 @@ import com.mipresupuestocr.app.data.repository.DefaultHoldingRepository
 import com.mipresupuestocr.app.data.repository.DefaultQuoteRepository
 import com.mipresupuestocr.app.data.repository.DefaultRateRepository
 import com.mipresupuestocr.app.data.repository.DefaultTransactionRepository
+import com.mipresupuestocr.app.data.repository.DefaultTransferRepository
 import com.mipresupuestocr.app.data.settings.DataStoreMarketDataKeySource
 import com.mipresupuestocr.app.data.settings.DefaultSettingsRepository
 import com.mipresupuestocr.app.data.settings.MarketDataKeySource
@@ -26,6 +27,7 @@ import com.mipresupuestocr.domain.repository.RateCache
 import com.mipresupuestocr.domain.repository.RateRepository
 import com.mipresupuestocr.domain.repository.SettingsRepository
 import com.mipresupuestocr.domain.repository.TransactionRepository
+import com.mipresupuestocr.domain.repository.TransferRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -47,6 +49,10 @@ abstract class BindingsModule {
     @Binds
     @Singleton
     abstract fun bindAccountRepository(impl: DefaultAccountRepository): AccountRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindTransferRepository(impl: DefaultTransferRepository): TransferRepository
 
     @Binds
     @Singleton

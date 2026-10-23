@@ -1,5 +1,7 @@
 package com.mipresupuestocr.domain.model
 
+import java.time.LocalDate
+
 /**
  * Where money sits: a checking account, a savings account, cash in hand, or an investment account.
  *
@@ -28,4 +30,19 @@ data class AccountBalance(
     val account: Account,
     val balance: Money,
     val entryCount: Int,
+)
+
+/**
+ * A move of money between two of the user's accounts, such as checking into savings.
+ *
+ * Kept apart from the entry history on purpose: a transfer changes both balances but is neither
+ * income nor spending, so recording it as an entry would inflate the budget totals.
+ */
+data class AccountTransfer(
+    val id: Long = 0L,
+    val fromAccountId: Long,
+    val toAccountId: Long,
+    val amount: Money,
+    val date: LocalDate,
+    val note: String = "",
 )

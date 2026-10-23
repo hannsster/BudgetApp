@@ -51,7 +51,7 @@ class DatabaseMigrationTest {
         legacy.close()
 
         val database = Room.databaseBuilder(context, AppDatabase::class.java, name)
-            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4)
             .allowMainThreadQueries()
             .build()
 
@@ -98,7 +98,7 @@ class DatabaseMigrationTest {
         legacy.close()
 
         val database = Room.databaseBuilder(context, AppDatabase::class.java, name)
-            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4)
             .allowMainThreadQueries()
             .build()
 
@@ -123,6 +123,56 @@ class DatabaseMigrationTest {
 
                 database.transactionDao().upsert(entries.single().copy(accountId = accountId))
                 assertEquals(accountId, database.transactionDao().getById(7L)!!.accountId)
+            }
+        } finally {
+            database.close()
+        }
+    }
+
+    @Test
+    fun `migrating from version 3 adds transfers and keeps accounts`() {
+        context.deleteDatabase(name)
+        val file = context.getDatabasePath(name)
+        file.parentFile?.mkdirs()
+
+        val legacy = SQLiteDatabase.openOrCreateDatabase(file, null)
+        VERSION_3_SCHEMA.forEach(legacy::execSQL)
+        legacy.version = 3
+        legacy.execSQL(
+            "INSERT INTO `accounts` (id, name, type, openingBalanceMinor, currency, sortOrder) " +
+                "VALUES (1, 'Corriente', 'CHECKING', 10000000, 'CRC', 0)",
+        )
+        legacy.execSQL(
+            "INSERT INTO `transactions` " +
+                "(id, type, amountMinor, currency, categoryId, dateEpochDay, note, createdAtMillis, accountId) " +
+                "VALUES (9, 'EXPENSE', 1500000, 'CRC', NULL, ${LocalDate.of(2026, 10, 9).toEpochDay()}, 'Súper', 0, 1)",
+        )
+        legacy.close()
+
+        val database = Room.databaseBuilder(context, AppDatabase::class.java, name)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4)
+            .allowMainThreadQueries()
+            .build()
+
+        try {
+            runBlocking {
+                val account = database.accountDao().getAll().single()
+                assertEquals("Corriente", account.name)
+                assertEquals(1L, database.transactionDao().getById(9L)!!.accountId)
+
+                val transferId = database.accountTransferDao().upsert(
+                    AccountTransferEntity(
+                        fromAccountId = 1L,
+                        toAccountId = 2L,
+                        amountMinor = 2500000,
+                        currency = "CRC",
+                        dateEpochDay = LocalDate.of(2026, 10, 12).toEpochDay(),
+                    ),
+                )
+                assertEquals(
+                    transferId,
+                    database.accountTransferDao().getAll().single().id,
+                )
             }
         } finally {
             database.close()
@@ -162,6 +212,24 @@ class DatabaseMigrationTest {
                 "`categoryId` INTEGER, `currency` TEXT NOT NULL, `amountMinor` INTEGER NOT NULL)",
             "CREATE INDEX IF NOT EXISTS `index_balance_corrections_periodStartEpochDay` " +
                 "ON `balance_corrections` (`periodStartEpochDay`)",
+        )
+
+        /** Version 2 plus accounts and the entry-to-account column (see app/schemas/.../3.json). */
+        val VERSION_3_SCHEMA = VERSION_2_SCHEMA.map { statement ->
+            if (statement.startsWith("CREATE TABLE IF NOT EXISTS `transactions`")) {
+                statement.replace(
+                    "`createdAtMillis` INTEGER NOT NULL)",
+                    "`createdAtMillis` INTEGER NOT NULL, `accountId` INTEGER)",
+                )
+            } else {
+                statement
+            }
+        } + listOf(
+            "CREATE INDEX IF NOT EXISTS `index_transactions_accountId` " +
+                "ON `transactions` (`accountId`)",
+            "CREATE TABLE IF NOT EXISTS `accounts` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                "`name` TEXT NOT NULL, `type` TEXT NOT NULL, `openingBalanceMinor` INTEGER NOT NULL, " +
+                "`currency` TEXT NOT NULL, `sortOrder` INTEGER NOT NULL)",
         )
     }
 }

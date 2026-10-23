@@ -7,34 +7,44 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -52,6 +62,7 @@ import com.mipresupuestocr.app.ui.util.accountTypeLabel
 import com.mipresupuestocr.app.ui.util.parseAmount
 import com.mipresupuestocr.domain.model.Account
 import com.mipresupuestocr.domain.model.AccountBalance
+import com.mipresupuestocr.domain.model.AccountTransfer
 import com.mipresupuestocr.domain.model.AccountType
 import com.mipresupuestocr.domain.model.Money
 import java.math.BigDecimal
@@ -65,8 +76,23 @@ fun AccountsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var creating by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<AccountBalance?>(null) }
+    var transferring by remember { mutableStateOf(false) }
+    var deletingTransfer by remember { mutableStateOf<AccountTransfer?>(null) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+
+    LaunchedEffect(state.message) {
+        val pending = state.message ?: return@LaunchedEffect
+        val text = when (pending) {
+            AccountsMessage.TransferSaved -> context.getString(R.string.transfer_saved)
+            AccountsMessage.TransferDeleted -> context.getString(R.string.transfer_deleted)
+        }
+        snackbarHostState.showSnackbar(text)
+        viewModel.consumeMessage()
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.accounts_title)) },
@@ -116,7 +142,24 @@ fun AccountsScreen(
             } else {
                 item {
                     SectionCard {
-                        CardTitle(stringResource(R.string.accounts_total))
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            CardTitle(stringResource(R.string.accounts_total))
+                            if (state.balances.size >= 2) {
+                                FilledTonalButton(onClick = { transferring = true }) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.SwapHoriz,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                    Spacer(Modifier.width(6.dp))
+                                    Text(stringResource(R.string.transfer_action))
+                                }
+                            }
+                        }
                         Text(
                             text = MoneyFormat.format(state.total),
                             style = MaterialTheme.typography.displaySmall,
@@ -172,6 +215,16 @@ fun AccountsScreen(
                         )
                     }
                 }
+
+                if (state.transfers.isNotEmpty()) {
+                    item {
+                        TransfersCard(
+                            transfers = state.transfers.take(MAX_VISIBLE_TRANSFERS),
+                            accountNames = state.balances.associate { it.account.id to it.account.name },
+                            onDelete = { deletingTransfer = it },
+                        )
+                    }
+                }
             }
         }
     }
@@ -202,6 +255,178 @@ fun AccountsScreen(
             },
         )
     }
+
+    if (transferring) {
+        TransferDialog(
+            accounts = state.balances.map { it.account },
+            onDismiss = { transferring = false },
+            onConfirm = { fromId, toId, amount ->
+                viewModel.transfer(fromId, toId, amount)
+                transferring = false
+            },
+        )
+    }
+
+    deletingTransfer?.let { transfer ->
+        AlertDialog(
+            onDismissRequest = { deletingTransfer = null },
+            title = { Text(stringResource(R.string.transfer_delete_title)) },
+            text = { Text(stringResource(R.string.transfer_delete_body)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteTransfer(transfer.id)
+                        deletingTransfer = null
+                    },
+                ) { Text(stringResource(R.string.action_delete)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { deletingTransfer = null }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        )
+    }
+}
+
+/** How many transfers the accounts screen lists; the balances above them already sum them all. */
+private const val MAX_VISIBLE_TRANSFERS = 5
+
+/** Recent transfers, so a mistyped one can be found and removed instead of being invisible. */
+@Composable
+private fun TransfersCard(
+    transfers: List<AccountTransfer>,
+    accountNames: Map<Long, String>,
+    onDelete: (AccountTransfer) -> Unit,
+) {
+    SectionCard {
+        CardTitle(stringResource(R.string.transfers_title))
+        transfers.forEach { transfer ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(
+                            R.string.transfer_between,
+                            accountNames[transfer.fromAccountId] ?: "—",
+                            accountNames[transfer.toAccountId] ?: "—",
+                        ),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    Text(
+                        text = MoneyFormat.formatDate(transfer.date),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                Text(
+                    text = MoneyFormat.format(transfer.amount),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                IconButton(onClick = { onDelete(transfer) }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Delete,
+                        contentDescription = stringResource(R.string.cd_delete_transfer),
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Moves money between two accounts. The amount defaults to blank and the two sides cannot be the
+ * same account, so the common mistake is caught before anything is written.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun TransferDialog(
+    accounts: List<Account>,
+    onDismiss: () -> Unit,
+    onConfirm: (fromId: Long, toId: Long, amount: String) -> Unit,
+) {
+    var fromId by remember { mutableStateOf(accounts.first().id) }
+    var toId by remember { mutableStateOf(accounts.getOrNull(1)?.id ?: accounts.first().id) }
+    var amount by remember { mutableStateOf("") }
+
+    val parsed = parseAmount(amount)
+    val sameAccount = fromId == toId
+    val canSave = !sameAccount && parsed != null && parsed.signum() > 0
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.transfer_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(
+                    text = stringResource(R.string.transfer_from),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    accounts.forEach { account ->
+                        FilterChip(
+                            selected = fromId == account.id,
+                            onClick = { fromId = account.id },
+                            label = { Text(account.name) },
+                        )
+                    }
+                }
+
+                Text(
+                    text = stringResource(R.string.transfer_to),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    accounts.forEach { account ->
+                        FilterChip(
+                            selected = toId == account.id,
+                            onClick = { toId = account.id },
+                            label = { Text(account.name) },
+                        )
+                    }
+                }
+
+                OutlinedTextField(
+                    value = amount,
+                    onValueChange = { amount = it },
+                    label = { Text(stringResource(R.string.transfer_amount)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text(
+                    text = if (sameAccount) {
+                        stringResource(R.string.transfer_same_account)
+                    } else {
+                        stringResource(R.string.transfer_amount_helper)
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (sameAccount) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onConfirm(fromId, toId, amount) },
+                enabled = canSave,
+            ) { Text(stringResource(R.string.transfer_action)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.action_cancel))
+            }
+        },
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)

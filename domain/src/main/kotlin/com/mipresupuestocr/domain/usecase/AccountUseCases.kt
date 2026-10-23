@@ -2,6 +2,7 @@ package com.mipresupuestocr.domain.usecase
 
 import com.mipresupuestocr.domain.model.Account
 import com.mipresupuestocr.domain.model.AccountBalance
+import com.mipresupuestocr.domain.model.AccountTransfer
 import com.mipresupuestocr.domain.model.AppError
 import com.mipresupuestocr.domain.model.AppResult
 import com.mipresupuestocr.domain.model.Money
@@ -34,7 +35,8 @@ class DeleteAccountUseCase(private val repository: AccountRepository) {
 }
 
 /**
- * Current balance per account: its opening balance plus its income minus its expenses.
+ * Current balance per account: its opening balance plus its income, minus its expenses, plus money
+ * transferred in and minus money transferred out.
  *
  * Entries in another currency are ignored instead of being added to a balance they do not belong
  * to; the app records entries in colones, so this only guards against future mixed-currency data.
@@ -44,6 +46,7 @@ class CalculateAccountBalancesUseCase {
     operator fun invoke(
         accounts: List<Account>,
         transactions: List<Transaction>,
+        transfers: List<AccountTransfer> = emptyList(),
     ): List<AccountBalance> {
         val byAccount = transactions
             .filter { it.accountId != null }
@@ -54,16 +57,25 @@ class CalculateAccountBalancesUseCase {
             .map { account ->
                 val currency = account.openingBalance.currency
                 val entries = byAccount[account.id].orEmpty().filter { it.amount.currency == currency }
-                val delta = entries.sumOf { entry ->
+                val entryDelta = entries.sumOf { entry ->
                     when (entry.type) {
                         TransactionType.INCOME -> entry.amount.amountMinor
                         TransactionType.EXPENSE -> -entry.amount.amountMinor
                     }
                 }
+                val incoming = transfers.filter {
+                    it.toAccountId == account.id && it.amount.currency == currency
+                }
+                val outgoing = transfers.filter {
+                    it.fromAccountId == account.id && it.amount.currency == currency
+                }
+                val transferDelta =
+                    incoming.sumOf { it.amount.amountMinor } - outgoing.sumOf { it.amount.amountMinor }
+
                 AccountBalance(
                     account = account,
-                    balance = account.openingBalance + Money(delta, currency),
-                    entryCount = entries.size,
+                    balance = account.openingBalance + Money(entryDelta + transferDelta, currency),
+                    entryCount = entries.size + incoming.size + outgoing.size,
                 )
             }
     }

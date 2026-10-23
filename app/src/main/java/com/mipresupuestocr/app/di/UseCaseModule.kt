@@ -6,8 +6,11 @@ import com.mipresupuestocr.domain.repository.HoldingRepository
 import com.mipresupuestocr.domain.repository.QuoteRepository
 import com.mipresupuestocr.domain.repository.RateRepository
 import com.mipresupuestocr.domain.repository.TransactionRepository
+import com.mipresupuestocr.domain.repository.TransferRepository
 import com.mipresupuestocr.domain.usecase.BudgetPeriodResolver
 import com.mipresupuestocr.domain.usecase.CalculateAccountBalancesUseCase
+import com.mipresupuestocr.domain.usecase.CalculateNetWorthUseCase
+import com.mipresupuestocr.domain.usecase.DeleteAccountTransferUseCase
 import com.mipresupuestocr.domain.usecase.DeleteAccountUseCase
 import com.mipresupuestocr.domain.usecase.BudgetProgressCalculator
 import com.mipresupuestocr.domain.usecase.BuildDashboardUseCase
@@ -24,6 +27,7 @@ import com.mipresupuestocr.domain.usecase.SetCategoryBalanceUseCase
 import com.mipresupuestocr.domain.usecase.SetIncomeBalanceUseCase
 import com.mipresupuestocr.domain.usecase.SetManualRateUseCase
 import com.mipresupuestocr.domain.usecase.SetSpentBalanceUseCase
+import com.mipresupuestocr.domain.usecase.TransferBetweenAccountsUseCase
 import com.mipresupuestocr.domain.usecase.UpsertHoldingUseCase
 import dagger.Module
 import dagger.Provides
@@ -69,6 +73,19 @@ object UseCaseModule {
     @Provides
     fun provideCalculateAccountBalancesUseCase(): CalculateAccountBalancesUseCase =
         CalculateAccountBalancesUseCase()
+
+    @Provides
+    fun provideCalculateNetWorthUseCase(): CalculateNetWorthUseCase = CalculateNetWorthUseCase()
+
+    @Provides
+    fun provideTransferBetweenAccountsUseCase(
+        repository: TransferRepository,
+    ): TransferBetweenAccountsUseCase = TransferBetweenAccountsUseCase(repository)
+
+    @Provides
+    fun provideDeleteAccountTransferUseCase(
+        repository: TransferRepository,
+    ): DeleteAccountTransferUseCase = DeleteAccountTransferUseCase(repository)
 
     @Provides
     fun provideUpsertHoldingUseCase(repository: HoldingRepository): UpsertHoldingUseCase =

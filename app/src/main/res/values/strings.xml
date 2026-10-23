@@ -209,6 +209,13 @@
 
     <!-- Accounts -->
     <string name="action_back">Volver</string>
+    <string name="net_worth_title">Patrimonio total</string>
+    <string name="net_worth_hint">Cuentas + portafolio al tipo de cambio actual</string>
+    <string name="net_worth_accounts">Cuentas</string>
+    <string name="net_worth_portfolio">Portafolio</string>
+    <string name="net_worth_portfolio_unpriced">Sin valorar</string>
+    <string name="net_worth_partial">Algunas posiciones no tienen precio, así que el total es un mínimo.</string>
+
     <string name="accounts_title">Cuentas</string>
     <string name="accounts_manage">Administrar</string>
     <string name="accounts_total">Total</string>
@@ -222,7 +229,21 @@
     <string name="accounts_opening_balance">Saldo inicial (₡)</string>
     <string name="accounts_opening_helper">Lo que la cuenta ya tenía cuando empezaste a usar la app. El saldo suma los ingresos y resta los gastos de esta cuenta.</string>
     <string name="accounts_delete_title">¿Eliminar esta cuenta?</string>
-    <string name="accounts_delete_body">Los movimientos se conservan; solo dejan de estar asignados a esta cuenta.</string>
+    <string name="accounts_delete_body">Los movimientos se conservan; solo dejan de estar asignados a esta cuenta. Las transferencias que la tocaban se eliminan.</string>
+    <string name="transfer_action">Transferir</string>
+    <string name="transfer_title">Transferir entre cuentas</string>
+    <string name="transfer_from">Desde</string>
+    <string name="transfer_to">Hacia</string>
+    <string name="transfer_amount">Monto (₡)</string>
+    <string name="transfer_amount_helper">Sale de una cuenta y entra en la otra. No cuenta como gasto ni como ingreso.</string>
+    <string name="transfer_same_account">Elige dos cuentas distintas.</string>
+    <string name="transfer_saved">Transferencia registrada</string>
+    <string name="transfer_deleted">Transferencia eliminada</string>
+    <string name="transfer_between">%1$s → %2$s</string>
+    <string name="transfers_title">Transferencias</string>
+    <string name="transfer_delete_title">¿Eliminar esta transferencia?</string>
+    <string name="transfer_delete_body">El dinero vuelve a las cuentas tal como estaba antes de la transferencia.</string>
+    <string name="cd_delete_transfer">Eliminar transferencia</string>
     <string name="account_type_checking">Corriente</string>
     <string name="account_type_savings">Ahorros</string>
     <string name="account_type_cash">Efectivo</string>
@@ -260,6 +281,7 @@
     <string name="error_unknown">Ocurrió un error inesperado.</string>
     <string name="error_invalid_shares">Las unidades deben ser mayores que cero.</string>
     <string name="error_invalid_account_name">El nombre de la cuenta no puede estar vacío.</string>
+    <string name="error_same_account_transfer">Las cuentas de origen y destino deben ser distintas.</string>
 
     <!-- Default categories -->
     <string name="category_housing">Alquiler o hipoteca</string>

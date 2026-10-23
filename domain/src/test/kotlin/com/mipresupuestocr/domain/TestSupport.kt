@@ -1,6 +1,7 @@
 package com.mipresupuestocr.domain
 
 import com.mipresupuestocr.domain.model.Account
+import com.mipresupuestocr.domain.model.AccountTransfer
 import com.mipresupuestocr.domain.model.AppResult
 import com.mipresupuestocr.domain.model.BalanceCorrection
 import com.mipresupuestocr.domain.model.Category
@@ -20,6 +21,7 @@ import com.mipresupuestocr.domain.repository.QuoteRepository
 import com.mipresupuestocr.domain.repository.RateRepository
 import com.mipresupuestocr.domain.repository.SettingsRepository
 import com.mipresupuestocr.domain.repository.TransactionRepository
+import com.mipresupuestocr.domain.repository.TransferRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -48,6 +50,27 @@ class FakeTransactionRepository(initial: List<Transaction> = emptyList()) : Tran
         upserted += transaction
         val id = if (transaction.id == 0L) (state.value.maxOfOrNull { it.id } ?: 0L) + 1 else transaction.id
         state.value = state.value.filterNot { it.id == id } + transaction.copy(id = id)
+        return id
+    }
+
+    override suspend fun delete(id: Long) {
+        state.value = state.value.filterNot { it.id == id }
+    }
+}
+
+class FakeTransferRepository(initial: List<AccountTransfer> = emptyList()) : TransferRepository {
+    private val state = MutableStateFlow(initial)
+    val saved = mutableListOf<AccountTransfer>()
+
+    override fun observeAll(): Flow<List<AccountTransfer>> = state
+
+    /** Current rows, so a test can feed them straight into the balance calculation. */
+    fun current(): List<AccountTransfer> = state.value
+
+    override suspend fun save(transfer: AccountTransfer): Long {
+        saved += transfer
+        val id = if (transfer.id == 0L) (state.value.maxOfOrNull { it.id } ?: 0L) + 1 else transfer.id
+        state.value = state.value.filterNot { it.id == id } + transfer.copy(id = id)
         return id
     }
 
