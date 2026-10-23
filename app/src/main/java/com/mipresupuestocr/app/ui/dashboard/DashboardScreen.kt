@@ -191,7 +191,10 @@ fun DashboardScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             val netWorth = state.netWorth
-            if (netWorth != null && (state.accounts.isNotEmpty() || snapshot?.portfolio?.isEmpty == false)) {
+            val hasSomethingToCount = state.accounts.isNotEmpty() ||
+                snapshot?.portfolio?.isEmpty == false ||
+                netWorth?.unassigned?.isZero == false
+            if (netWorth != null && hasSomethingToCount) {
                 item { NetWorthCard(netWorth) }
             }
 
@@ -391,8 +394,9 @@ fun DashboardScreen(
 }
 
 /**
- * Everything the user owns, on one line: account balances plus the portfolio at the current rate.
- * Shown above the period figures because it answers "how much do I have", not "how is this month".
+ * Everything the user owns, on one line: account balances, the portfolio at the current rate, and the
+ * paycheck money that no account owns yet. Shown above the period figures because it answers
+ * "how much do I have", not "how is this month".
  */
 @Composable
 private fun NetWorthCard(netWorth: NetWorth) {
@@ -426,6 +430,12 @@ private fun NetWorthCard(netWorth: NetWorth) {
             value = netWorth.portfolioCrc?.let { MoneyFormat.format(it) }
                 ?: stringResource(R.string.net_worth_portfolio_unpriced),
         )
+        if (!netWorth.unassigned.isZero) {
+            KeyValueRow(
+                label = stringResource(R.string.net_worth_unassigned),
+                value = MoneyFormat.format(netWorth.unassigned),
+            )
+        }
         if (netWorth.isPartial) {
             Text(
                 text = stringResource(R.string.net_worth_partial),

@@ -210,9 +210,10 @@
     <!-- Accounts -->
     <string name="action_back">Back</string>
     <string name="net_worth_title">Net worth</string>
-    <string name="net_worth_hint">Accounts + portfolio at the current exchange rate</string>
+    <string name="net_worth_hint">Accounts + portfolio at the current rate + available not in an account</string>
     <string name="net_worth_accounts">Accounts</string>
     <string name="net_worth_portfolio">Portfolio</string>
+    <string name="net_worth_unassigned">Available, not in an account</string>
     <string name="net_worth_portfolio_unpriced">Not valued</string>
     <string name="net_worth_partial">Some holdings have no price, so the total is a lower bound.</string>
 

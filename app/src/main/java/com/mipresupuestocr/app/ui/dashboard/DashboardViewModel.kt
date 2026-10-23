@@ -187,7 +187,11 @@ class DashboardViewModel @Inject constructor(
                 error = null,
                 period = effectivePeriod,
                 accounts = balances,
-                netWorth = calculateNetWorth(balances, result.value.portfolio),
+                netWorth = calculateNetWorth(
+                    balances = balances,
+                    portfolio = result.value.portfolio,
+                    transactions = bundle.transactions,
+                ),
             )
             is AppResult.Failure ->
                 Resolved(null, result.error, effectivePeriod, accounts = balances)

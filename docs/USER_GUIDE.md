@@ -36,9 +36,13 @@ must be uninstalled once before switching over.
 
 ## Dashboard
 
-- **Patrimonio total:** the big figure at the top is everything you own — the sum of your account balances plus
-  the portfolio at the current USD/CRC rate. The two parts appear below it. If a holding has no quote (or there
-  is no rate yet), the portfolio is left out and the card says the total is a lower bound.
+- **Patrimonio total:** the big figure at the top is everything you own — your account balances plus the
+  portfolio at the current USD/CRC rate plus any money recorded **Sin cuenta**. The parts appear below it. If a
+  holding has no quote (or there is no rate yet), the portfolio is left out and the card says the total is a
+  lower bound.
+- **Disponible sin cuenta:** income you record without picking an account is the money the budget shows as
+  available, and it is included in the total exactly once. Assign it to an account later and it moves from this
+  line into that account's balance — the total does not change.
 - **Period header:** use the arrows to walk month by month (or 14-day cycle by cycle).
 - **Available:** income recorded in the period minus expenses, with a progress bar for how much of the income is
   already spent.

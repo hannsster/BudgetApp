@@ -210,9 +210,10 @@
     <!-- Accounts -->
     <string name="action_back">Volver</string>
     <string name="net_worth_title">Patrimonio total</string>
-    <string name="net_worth_hint">Cuentas + portafolio al tipo de cambio actual</string>
+    <string name="net_worth_hint">Cuentas + portafolio al tipo de cambio actual + disponible sin cuenta</string>
     <string name="net_worth_accounts">Cuentas</string>
     <string name="net_worth_portfolio">Portafolio</string>
+    <string name="net_worth_unassigned">Disponible sin cuenta</string>
     <string name="net_worth_portfolio_unpriced">Sin valorar</string>
     <string name="net_worth_partial">Algunas posiciones no tienen precio, así que el total es un mínimo.</string>
 

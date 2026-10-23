@@ -7,6 +7,8 @@ import com.mipresupuestocr.domain.model.AppError
 import com.mipresupuestocr.domain.model.CurrencyCode
 import com.mipresupuestocr.domain.model.Money
 import com.mipresupuestocr.domain.model.PortfolioValuation
+import com.mipresupuestocr.domain.model.Transaction
+import com.mipresupuestocr.domain.model.TransactionType
 import com.mipresupuestocr.domain.usecase.CalculateAccountBalancesUseCase
 import com.mipresupuestocr.domain.usecase.CalculateNetWorthUseCase
 import com.mipresupuestocr.domain.usecase.DeleteAccountTransferUseCase
@@ -35,6 +37,17 @@ class TransferUseCasesTest {
         name = "Ahorros",
         type = AccountType.SAVINGS,
         openingBalance = Money.ofMajor("50000", CurrencyCode.CRC),
+    )
+
+    private fun entry(
+        amount: String,
+        type: TransactionType,
+        accountId: Long? = null,
+    ) = Transaction(
+        type = type,
+        amount = Money.ofMajor(amount, CurrencyCode.CRC),
+        date = LocalDate.of(2026, 10, 5),
+        accountId = accountId,
     )
 
     private fun portfolio(
@@ -144,6 +157,7 @@ class TransferUseCasesTest {
         val netWorth = calculateNetWorth(
             balances,
             portfolio(totalCrc = Money.ofMajor("250000", CurrencyCode.CRC)),
+            emptyList(),
         )
 
         assertEquals(150_000_00L, netWorth.accountsTotal.amountMinor)
@@ -152,10 +166,70 @@ class TransferUseCasesTest {
     }
 
     @Test
+    fun `a paycheck recorded without an account lands in the total`() {
+        val balances = listOf(AccountBalance(checking, Money.ofMajor("100000", CurrencyCode.CRC), 0))
+
+        val netWorth = calculateNetWorth(
+            balances,
+            portfolio(totalCrc = null, isEmpty = true),
+            listOf(entry("300000", TransactionType.INCOME)),
+        )
+
+        assertEquals(300_000_00L, netWorth.unassigned.amountMinor)
+        assertEquals(400_000_00L, netWorth.total.amountMinor)
+    }
+
+    @Test
+    fun `money assigned to an account is not counted twice`() {
+        val balances = listOf(AccountBalance(checking, Money.ofMajor("300000", CurrencyCode.CRC), 0))
+
+        val netWorth = calculateNetWorth(
+            balances,
+            portfolio(totalCrc = null, isEmpty = true),
+            listOf(entry("300000", TransactionType.INCOME, accountId = checking.id)),
+        )
+
+        assertTrue(netWorth.unassigned.isZero)
+        assertEquals(300_000_00L, netWorth.total.amountMinor)
+    }
+
+    @Test
+    fun `spending without an account lowers the unassigned money`() {
+        val balances = listOf(AccountBalance(checking, Money.ofMajor("100000", CurrencyCode.CRC), 0))
+
+        val netWorth = calculateNetWorth(
+            balances,
+            portfolio(totalCrc = null, isEmpty = true),
+            listOf(
+                entry("500000", TransactionType.INCOME),
+                entry("200000", TransactionType.EXPENSE),
+                entry("15000", TransactionType.EXPENSE, accountId = checking.id),
+            ),
+        )
+
+        assertEquals(300_000_00L, netWorth.unassigned.amountMinor)
+        assertEquals("the assigned expense belongs to the balance already", 400_000_00L, netWorth.total.amountMinor)
+    }
+
+    @Test
+    fun `spending with no recorded income pulls the total down`() {
+        val balances = listOf(AccountBalance(checking, Money.ofMajor("100000", CurrencyCode.CRC), 0))
+
+        val netWorth = calculateNetWorth(
+            balances,
+            portfolio(totalCrc = null, isEmpty = true),
+            listOf(entry("25000", TransactionType.EXPENSE)),
+        )
+
+        assertEquals(-25_000_00L, netWorth.unassigned.amountMinor)
+        assertEquals(75_000_00L, netWorth.total.amountMinor)
+    }
+
+    @Test
     fun `a portfolio without a rate still shows the accounts total`() {
         val balances = listOf(AccountBalance(checking, Money.ofMajor("100000", CurrencyCode.CRC), 0))
 
-        val netWorth = calculateNetWorth(balances, portfolio(totalCrc = null))
+        val netWorth = calculateNetWorth(balances, portfolio(totalCrc = null), emptyList())
 
         assertEquals(100_000_00L, netWorth.total.amountMinor)
         assertTrue("the portfolio is left out, so the figure is partial", netWorth.isPartial)
@@ -168,6 +242,7 @@ class TransferUseCasesTest {
         val netWorth = calculateNetWorth(
             balances,
             portfolio(totalCrc = Money.ofMajor("50000", CurrencyCode.CRC), unpriced = listOf("VTI")),
+            emptyList(),
         )
 
         assertEquals(150_000_00L, netWorth.total.amountMinor)
@@ -178,7 +253,11 @@ class TransferUseCasesTest {
     fun `no holdings means nothing is missing`() {
         val balances = listOf(AccountBalance(checking, Money.ofMajor("100000", CurrencyCode.CRC), 0))
 
-        val netWorth = calculateNetWorth(balances, portfolio(totalCrc = null, isEmpty = true))
+        val netWorth = calculateNetWorth(
+            balances,
+            portfolio(totalCrc = null, isEmpty = true),
+            emptyList(),
+        )
 
         assertEquals(100_000_00L, netWorth.total.amountMinor)
         assertFalse(netWorth.isPartial)

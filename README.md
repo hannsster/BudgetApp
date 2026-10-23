@@ -84,8 +84,9 @@ without a purchase price; prices simply stay blank and are labelled as such.
 - **Accounts** — separate checking, savings, cash and investment balances, each starting from a balance you
   enter, with every entry assignable to one account and a **Transferir** action that moves money between them
   without counting as income or spending.
-- **Net worth on the dashboard** — account balances plus the portfolio converted to colones, broken out into
-  its two parts, so "how much do I have" is the first figure on the home screen.
+- **Net worth on the dashboard** — account balances plus the portfolio converted to colones plus the
+  paycheck money recorded *Sin cuenta*, broken out into its parts, so "how much do I have" is the first
+  figure on the home screen.
 - **In-app updates** — the app checks its own GitHub Releases feed, downloads the APK and passes it to
   Android's installer, so an update never touches your data.
 - **Background refresh** — WorkManager refreshes rates and quotes every six hours when a connection exists.

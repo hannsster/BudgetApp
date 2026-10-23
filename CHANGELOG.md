@@ -6,6 +6,18 @@ All notable changes are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-10-23
+
+### Added
+
+- The net worth total also counts money recorded with **Sin cuenta**: a paycheck the budget shows as
+  available now lands in *Patrimonio total*, added once — anything already assigned to an account was
+  counted through that account's balance and is not added again.
+
+### Changed
+
+- Version bumped to 1.5.1.
+
 ## [1.5.0] - 2026-10-23
 
 ### Added

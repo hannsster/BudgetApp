@@ -58,7 +58,7 @@ android {
         targetSdk = 35
         // Overridable from the release workflow: -PappVersionName=1.2.0 -PappVersionCode=42
         versionCode = (project.findProperty("appVersionCode") as String?)?.toIntOrNull() ?: 6
-        versionName = (project.findProperty("appVersionName") as String?) ?: "1.5.0"
+        versionName = (project.findProperty("appVersionName") as String?) ?: "1.5.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
